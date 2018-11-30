@@ -95,11 +95,11 @@ void loop() {
   VALUE_WATER_LEVEL  = (uint8_t) waterLevel;
 */
 
-  VALUE_FLUX_IN      = (uint8_t) 31;
-  VALUE_FLUX_OUT     = (uint8_t) 32;
+  VALUE_PRESSURE_IN  = (uint8_t) 31;
+  VALUE_PRESSURE_OUT = (uint8_t) 32;
   VALUE_UV           = (uint8_t) 33;
-  VALUE_PRESSURE_IN  = (uint8_t) 34;
-  VALUE_PRESSURE_OUT = (uint8_t) 35;
+  VALUE_FLUX_IN      = (uint8_t) 34;
+  VALUE_FLUX_OUT     = (uint8_t) 35;
   VALUE_WATER_TEMP   = (uint8_t) 36;
   VALUE_WATER_LEVEL  = (uint8_t) 37;
   
