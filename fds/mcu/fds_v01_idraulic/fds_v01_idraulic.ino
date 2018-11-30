@@ -6,7 +6,7 @@
 
 
 // Device address
-#define I2C_ADDR      0x24
+#define I2C_ADDR      0x23
 
 // Pins declaration
 #define PRESSURE_IN_PIN        A0
@@ -17,13 +17,13 @@
 #define TEMP_ONE_WIRE_BUS   5 
 
 // I2C registers descriptions
-#define EVENT_GET_PRESSURE_IN    0x40
-#define EVENT_GET_PRESSURE_OUT    0x41
-#define EVENT_GET_UV    0x42
-#define EVENT_GET_FLUX_IN    0x43
-#define EVENT_GET_FLUX_OUT    0x44
-#define EVENT_GET_WATER_TEMP    0x45
-#define EVENT_GET_WATER_LEVEL   0x46
+#define EVENT_GET_PRESSURE_IN     0x30
+#define EVENT_GET_PRESSURE_OUT    0x31
+#define EVENT_GET_UV              0x32
+#define EVENT_GET_FLUX_IN         0x33
+#define EVENT_GET_FLUX_OUT        0x34
+#define EVENT_GET_WATER_TEMP      0x35
+#define EVENT_GET_WATER_LEVEL     0x36
 
 // Output variables
 uint8_t VALUE_PRESSURE_IN = 0;
@@ -56,7 +56,7 @@ void setup() {
   
   sensors.begin();
   // Output pin muxing
-
+  pinMode(13, OUTPUT);
   // I2c slave mode enabling
   Wire.begin(I2C_ADDR);
   Wire.onRequest(requestEvent); // data request to slave
@@ -85,13 +85,28 @@ void loop() {
   fluxIn  = int0count;
   fluxOut = int1count;
 
-  VALUE_FLUX_IN  = (uint8_t) fluxIn;
-  VALUE_FLUX_OUT = (uint8_t) fluxOut;
-  VALUE_UV = (uint8_t) uv;
+/*
+  VALUE_FLUX_IN      = (uint8_t) fluxIn;
+  VALUE_FLUX_OUT     = (uint8_t) fluxOut;
+  VALUE_UV           = (uint8_t) uv;
   VALUE_PRESSURE_IN  = (uint8_t) pressureIn;
-  VALUE_PRESSURE_OUT  = (uint8_t) pressureOut;
-  VALUE_WATER_TEMP = (uint8_t) waterTemp;
-  VALUE_WATER_LEVEL = (uint8_t) waterLevel;
+  VALUE_PRESSURE_OUT = (uint8_t) pressureOut;
+  VALUE_WATER_TEMP   = (uint8_t) waterTemp;
+  VALUE_WATER_LEVEL  = (uint8_t) waterLevel;
+*/
+
+  VALUE_FLUX_IN      = (uint8_t) 31;
+  VALUE_FLUX_OUT     = (uint8_t) 32;
+  VALUE_UV           = (uint8_t) 33;
+  VALUE_PRESSURE_IN  = (uint8_t) 34;
+  VALUE_PRESSURE_OUT = (uint8_t) 35;
+  VALUE_WATER_TEMP   = (uint8_t) 36;
+  VALUE_WATER_LEVEL  = (uint8_t) 37;
+  
+  digitalWrite(13, HIGH);
+  delay(10);
+  digitalWrite(13, LOW);
+  delay(10);
 }
 
 // I2C management

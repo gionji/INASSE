@@ -8,7 +8,7 @@
 #define EMON_IRMS_CALIB  1480
 
 // Device address
-#define I2C_ADDR             0x22
+#define I2C_ADDR             0x24
 
 // Pins declaration
 #define CC_OUTPUT_PIN         A0
@@ -17,10 +17,10 @@
 #define AC_OUTPUT_3_PIN       A3
 
 // I2C registers descriptions
-#define EVENT_GET_CC_CURRENT      0x10
-#define EVENT_GET_AC1_CURRENT     0x11
-#define EVENT_GET_AC2_CURRENT     0x12
-#define EVENT_GET_AC3_CURRENT     0x13
+#define EVENT_GET_CC_CURRENT      0x40
+#define EVENT_GET_AC1_CURRENT     0x41
+#define EVENT_GET_AC2_CURRENT     0x42
+#define EVENT_GET_AC3_CURRENT     0x43
 
 // Output variables
 uint8_t VALUE_CC = 0;
@@ -50,6 +50,7 @@ void setup() {
   // Input pins
 
   // Output pin muxing
+  pinMode(13, OUTPUT);
 
   // I2c slave mode enabling
   Wire.begin(I2C_ADDR);
@@ -68,11 +69,22 @@ void loop() {
   double Irms1 = acOutput1.calcIrms(1480);  // Calculate Irms only
   double Irms2 = acOutput2.calcIrms(1480);  // Calculate Irms only
   double Irms3 = acOutput3.calcIrms(1480);  // Calculate Irms only
-
+/*
   VALUE_CC  = Icc   * SCALE_CC;
   VALUE_AC1 = Irms1 * SCALE_AC1;
   VALUE_AC2 = Irms2 * SCALE_AC2;
   VALUE_AC3 = Irms3 * SCALE_AC3;
+*/
+
+  VALUE_CC  = 41;
+  VALUE_AC1 = 42;
+  VALUE_AC2 = 43;
+  VALUE_AC3 = 44;
+
+  digitalWrite(13, HIGH);
+  delay(10);
+  digitalWrite(13, LOW);
+  delay(10);
 }
 
 // I2C management

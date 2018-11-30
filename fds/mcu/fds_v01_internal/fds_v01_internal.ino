@@ -6,7 +6,7 @@
 
 
 // Device address
-#define I2C_ADDR                   0x21
+#define I2C_ADDR                   0x22
 
 #define OUT_REG_TYPE uint8_t
 
@@ -35,8 +35,6 @@ DallasTemperature sensors(&ds);
 float airIn, airOut, airInside;
 int isFlooded;
 
-// Thresholds
-
 
 
 void setup() { 
@@ -44,6 +42,7 @@ void setup() {
   // Input pins
   sensors.begin();
   // Output pin muxing
+  pinMode(13, OUTPUT);
 
   // I2c slave mode enabling
   Wire.begin(I2C_ADDR);
@@ -57,21 +56,27 @@ void loop() {
   discoverOneWireDevices();
 
   sensors.requestTemperatures();
-  Serial.println(sensors.getTempCByIndex(0));
+  //Serial.println(sensors.getTempCByIndex(0));
 
   airIn     = sensors.getTempCByIndex(0);
   airOut    = sensors.getTempCByIndex(1);
   airInside = sensors.getTempCByIndex(2);
   isFlooded = digitalRead(FLOOD_PIN);
-  
+/*  
   VALUE_AIR_IN          = (OUT_REG_TYPE) airIn;
   VALUE_AIR_OUT         = (OUT_REG_TYPE) airOut;
   VALUE_AIR_INSIDE      = (OUT_REG_TYPE) airInside;
   VALUE_FLOODING_STATUS = (OUT_REG_TYPE) isFlooded;
+*/
+  VALUE_AIR_IN          = (OUT_REG_TYPE) 21;
+  VALUE_AIR_OUT         = (OUT_REG_TYPE) 22;
+  VALUE_AIR_INSIDE      = (OUT_REG_TYPE) 23;
+  VALUE_FLOODING_STATUS = (OUT_REG_TYPE) 24;
 
- // scalare a valori uint8 o 16
-  
-  delay(500);
+  digitalWrite(13, HIGH);
+  delay(10);
+  digitalWrite(13, LOW);
+  delay(10);
 }
 
 // I2C management

@@ -6,26 +6,26 @@
 
 
 // Device address
-#define I2C_ADDR      0x23
+#define I2C_ADDR      0x21
 
 // Pins declaration
-#define PYROMETER_PIN       A0
-#define TEMP_ONE_WIRE_BUS   5 
+#define PYROMETER_PIN        A0
+#define TEMP_ONE_WIRE_BUS    5 
 #define INTERRUPT_0_PIN      2 // interrupt 0 pin
 
 // I2C registers descriptions
-#define EVENT_GET_TEMP_PANEL_1           0x30
-#define EVENT_GET_TEMP_PANEL_2          0x31
-#define EVENT_GET_TEMP_ENV       0x32
-#define EVENT_GET_PYRO  0x33
-#define EVENT_GET_WIND  0x34
+#define EVENT_GET_TEMP_PANEL_1   0x10
+#define EVENT_GET_TEMP_PANEL_2   0x11
+#define EVENT_GET_TEMP_ENV       0x12
+#define EVENT_GET_PYRO           0x13
+#define EVENT_GET_WIND           0x14
 
 // Output variables
 uint8_t VALUE_TEMP_PANEL_1 = 0;
 uint8_t VALUE_TEMP_PANEL_2 = 0;
-uint8_t VALUE_TEMP_ENV = 0;
-uint8_t VALUE_WIND = 0;
-uint8_t VALUE_PYRO = 0;
+uint8_t VALUE_TEMP_ENV     = 0;
+uint8_t VALUE_WIND         = 0;
+uint8_t VALUE_PYRO         = 0;
 
 // Local variables
 volatile int int0count =0;
@@ -34,8 +34,6 @@ OneWire  ds(TEMP_ONE_WIRE_BUS);
 DallasTemperature sensors(&ds);
 float tempPanel1, tempPanel2, tempEnv;
 int wind, pyro;
-
-// Thresholds
 
 
 
@@ -48,6 +46,7 @@ void setup() {
   sensors.begin();
 
   // Output pin muxing
+  pinMode(13, OUTPUT);
 
   // I2c slave mode enabling
   Wire.begin(I2C_ADDR);
@@ -60,7 +59,7 @@ void loop() {
   // Interrupts reset
   int0count = 0;
   sensors.requestTemperatures();
-  Serial.println(sensors.getTempCByIndex(0));
+  //Serial.println(sensors.getTempCByIndex(0));
 
   tempPanel1    = sensors.getTempCByIndex(0);
   tempPanel2    = sensors.getTempCByIndex(1);
@@ -73,12 +72,24 @@ void loop() {
   
   wind = int0count;
   pyro = analogRead(PYROMETER_PIN);
-  
+  /*
   VALUE_TEMP_PANEL_1 = (uint8_t) tempPanel1;
   VALUE_TEMP_PANEL_2 = (uint8_t) tempPanel2;
   VALUE_TEMP_ENV     = (uint8_t) tempEnv;
   VALUE_WIND         = (uint8_t) wind;
   VALUE_PYRO         = (uint8_t) pyro;
+*/
+    
+  VALUE_TEMP_PANEL_1 = (uint8_t) 11;
+  VALUE_TEMP_PANEL_2 = (uint8_t) 12;
+  VALUE_TEMP_ENV     = (uint8_t) 13;
+  VALUE_WIND         = (uint8_t) 14;
+  VALUE_PYRO         = (uint8_t) 15;
+
+  digitalWrite(13, HIGH);
+  delay(10);
+  digitalWrite(13, LOW);
+  delay(10);
 }
 
 // I2C management
