@@ -23,7 +23,7 @@
 #define EVENT_GET_AC3_CURRENT     0x43
 
 // Output variables
-uint8_t VALUE_CC = 0;
+uint8_t VALUE_CC  = 0;
 uint8_t VALUE_AC1 = 0;
 uint8_t VALUE_AC2 = 0;
 uint8_t VALUE_AC3 = 0;
@@ -69,18 +69,23 @@ void loop() {
   double Irms1 = acOutput1.calcIrms(1480);  // Calculate Irms only
   double Irms2 = acOutput2.calcIrms(1480);  // Calculate Irms only
   double Irms3 = acOutput3.calcIrms(1480);  // Calculate Irms only
-/*
-  VALUE_CC  = Icc   * SCALE_CC;
-  VALUE_AC1 = Irms1 * SCALE_AC1;
-  VALUE_AC2 = Irms2 * SCALE_AC2;
-  VALUE_AC3 = Irms3 * SCALE_AC3;
-*/
 
+  if (Irms1 > 254.0) Irms1 = 255;
+  if (Irms2 > 254.0) Irms2 = 255;
+  if (Irms3 > 254.0) Irms3 = 255;
+  if (Icc   > 254.0)   Icc = 255;
+
+  VALUE_CC  = (uint8_t)(Icc   * SCALE_CC );
+  VALUE_AC1 = (uint8_t)(Irms1 * SCALE_AC1);
+  VALUE_AC2 = (uint8_t)(Irms2 * SCALE_AC2);
+  VALUE_AC3 = (uint8_t)(Irms3 * SCALE_AC3);
+
+/*
   VALUE_CC  = 41;
   VALUE_AC1 = 42;
   VALUE_AC2 = 43;
   VALUE_AC3 = 44;
-
+*/
   digitalWrite(13, HIGH);
   delay(10);
   digitalWrite(13, LOW);
@@ -123,4 +128,3 @@ void requestEvent() {
     }
   //Serial.println("Request event OUT: " + event_s);
 }
-

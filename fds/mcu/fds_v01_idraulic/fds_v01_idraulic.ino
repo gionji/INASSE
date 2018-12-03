@@ -72,7 +72,7 @@ void loop() {
   sensors.requestTemperatures();
 
   uv = analogRead(UV_PIN);
-  pressureIn = analogRead(PRESSURE_IN_PIN);
+  pressureIn  = analogRead(PRESSURE_IN_PIN);
   pressureOut = analogRead(PRESSURE_OUT_PIN);
   waterLevel = 0;
   waterTemp = sensors.getTempCByIndex(0);
@@ -85,16 +85,16 @@ void loop() {
   fluxIn  = int0count;
   fluxOut = int1count;
 
-/*
+
   VALUE_FLUX_IN      = (uint8_t) fluxIn;
   VALUE_FLUX_OUT     = (uint8_t) fluxOut;
-  VALUE_UV           = (uint8_t) uv;
-  VALUE_PRESSURE_IN  = (uint8_t) pressureIn;
-  VALUE_PRESSURE_OUT = (uint8_t) pressureOut;
-  VALUE_WATER_TEMP   = (uint8_t) waterTemp;
-  VALUE_WATER_LEVEL  = (uint8_t) waterLevel;
-*/
+  VALUE_UV           = (uint8_t) uv >> 2;
+  VALUE_PRESSURE_IN  = (uint8_t) pressureIn  >> 2;
+  VALUE_PRESSURE_OUT = (uint8_t) pressureOut >> 2;
+  VALUE_WATER_TEMP   = (uint8_t) waterTemp + 128;
+  VALUE_WATER_LEVEL  = (uint8_t) waterLevel + 128;
 
+/*
   VALUE_PRESSURE_IN  = (uint8_t) 31;
   VALUE_PRESSURE_OUT = (uint8_t) 32;
   VALUE_UV           = (uint8_t) 33;
@@ -102,6 +102,7 @@ void loop() {
   VALUE_FLUX_OUT     = (uint8_t) 35;
   VALUE_WATER_TEMP   = (uint8_t) 36;
   VALUE_WATER_LEVEL  = (uint8_t) 37;
+*/
   
   digitalWrite(13, HIGH);
   delay(10);

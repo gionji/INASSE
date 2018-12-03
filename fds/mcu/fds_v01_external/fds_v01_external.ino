@@ -72,19 +72,20 @@ void loop() {
   
   wind = int0count;
   pyro = analogRead(PYROMETER_PIN);
-  /*
-  VALUE_TEMP_PANEL_1 = (uint8_t) tempPanel1;
-  VALUE_TEMP_PANEL_2 = (uint8_t) tempPanel2;
-  VALUE_TEMP_ENV     = (uint8_t) tempEnv;
-  VALUE_WIND         = (uint8_t) wind;
-  VALUE_PYRO         = (uint8_t) pyro;
-*/
-    
+
+  VALUE_TEMP_PANEL_1 = (uint8_t)  (tempPanel1 + 128);
+  VALUE_TEMP_PANEL_2 = (uint8_t)  (tempPanel2 + 128);
+  VALUE_TEMP_ENV     = (uint8_t)  (tempEnv + 128);
+  VALUE_WIND         = (uint8_t)  wind; 
+  VALUE_PYRO         = (uint8_t)  pyro >> 2; // guadagno LM358?
+
+/*    
   VALUE_TEMP_PANEL_1 = (uint8_t) 11;
   VALUE_TEMP_PANEL_2 = (uint8_t) 12;
   VALUE_TEMP_ENV     = (uint8_t) 13;
   VALUE_WIND         = (uint8_t) 14;
   VALUE_PYRO         = (uint8_t) 15;
+*/
 
   digitalWrite(13, HIGH);
   delay(10);

@@ -62,17 +62,18 @@ void loop() {
   airOut    = sensors.getTempCByIndex(1);
   airInside = sensors.getTempCByIndex(2);
   isFlooded = digitalRead(FLOOD_PIN);
-/*  
-  VALUE_AIR_IN          = (OUT_REG_TYPE) airIn;
-  VALUE_AIR_OUT         = (OUT_REG_TYPE) airOut;
-  VALUE_AIR_INSIDE      = (OUT_REG_TYPE) airInside;
+
+  VALUE_AIR_IN          = (OUT_REG_TYPE) (airIn + 128);
+  VALUE_AIR_OUT         = (OUT_REG_TYPE) (airOut + 128);
+  VALUE_AIR_INSIDE      = (OUT_REG_TYPE) (airInside + 128);
   VALUE_FLOODING_STATUS = (OUT_REG_TYPE) isFlooded;
-*/
+
+/*
   VALUE_AIR_IN          = (OUT_REG_TYPE) 21;
   VALUE_AIR_OUT         = (OUT_REG_TYPE) 22;
   VALUE_AIR_INSIDE      = (OUT_REG_TYPE) 23;
   VALUE_FLOODING_STATUS = (OUT_REG_TYPE) 24;
-
+*/
   digitalWrite(13, HIGH);
   delay(10);
   digitalWrite(13, LOW);
@@ -143,5 +144,3 @@ void discoverOneWireDevices(void) {
   ds.reset_search();
   return;
 }
-
-
