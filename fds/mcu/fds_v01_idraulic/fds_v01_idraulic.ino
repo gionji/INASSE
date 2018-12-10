@@ -3,7 +3,7 @@
 #include <math.h>
 #include <OneWire.h> 
 #include <DallasTemperature.h>
-
+#include <SoftwareSerial.h>
 
 // Device address
 #define I2C_ADDR      0x23
@@ -14,7 +14,7 @@
 #define UV_PIN                 A2
 #define INTERRUPT_0_PIN      2 // interrupt 0 pin
 #define INTERRUPT_1_PIN      3 // interrupt 1 pin
-#define TEMP_ONE_WIRE_BUS   5 
+#define TEMP_ONE_WIRE_BUS    8 
 
 // I2C registers descriptions
 #define EVENT_GET_PRESSURE_IN     0x30
@@ -41,9 +41,10 @@ OneWire  ds(TEMP_ONE_WIRE_BUS);
 DallasTemperature sensors(&ds);
 float waterTemp;
 int pressureIn, pressureOut, uv, fluxIn, fluxOut, waterLevel;
+SoftwareSerial DYPSensor(9, 10); // RX, TX
 
 // Thresholds
-
+const int MAX_TRY_SERIAL = 50;
 
 
 void setup() { 
@@ -61,12 +62,14 @@ void setup() {
   Wire.begin(I2C_ADDR);
   Wire.onRequest(requestEvent); // data request to slave
   Wire.onReceive(receiveEvent); // data slave received
+
+  DYPSensor.begin(9600);
   
 }
 
 void loop() {
   // Interrupts reset
-  int0count = 0;
+  int0count  = 0;
   int1count  = 0;
 
   sensors.requestTemperatures();
@@ -74,8 +77,20 @@ void loop() {
   uv = analogRead(UV_PIN);
   pressureIn  = analogRead(PRESSURE_IN_PIN);
   pressureOut = analogRead(PRESSURE_OUT_PIN);
-  waterLevel = 0;
+  waterLevel = GetDistance();
   waterTemp = sensors.getTempCByIndex(0);
+
+  Serial.println(waterLevel);
+
+/*
+ * 
+ * 0xFF: frame start marker byte.
+H_DATA: distance data of high eight.
+L_DATA: distance data of low 8 bits.
+Checksum byte: Value should equal 0xFF + H_DATA + L_DATA  (only lowest 8 bits)
+ */
+
+
 
   // counting interrupts
   sei();
@@ -91,8 +106,8 @@ void loop() {
   VALUE_UV           = (uint8_t) uv >> 2;
   VALUE_PRESSURE_IN  = (uint8_t) pressureIn  >> 2;
   VALUE_PRESSURE_OUT = (uint8_t) pressureOut >> 2;
-  VALUE_WATER_TEMP   = (uint8_t) waterTemp + 128;
-  VALUE_WATER_LEVEL  = (uint8_t) waterLevel + 128;
+  VALUE_WATER_TEMP   = (uint8_t) waterTemp  + 128;
+  VALUE_WATER_LEVEL  = (uint8_t) waterLevel;
 
 /*
   VALUE_PRESSURE_IN  = (uint8_t) 31;
@@ -164,3 +179,56 @@ void interrupt0Handler(){
 void interrupt1Handler(){
   int1count++;
   }
+
+
+
+int GetDistance() {
+ byte msb, lsb, checksum, checkcalc, tries = 0;
+ int distance;
+
+// we want a 255 which is the start of the reading (not msb but saving a byte of variable storage)..
+ while (msb != 255) {
+ // wait for serial..
+ while ( not DYPSensor.available() && tries < MAX_TRY_SERIAL ) {
+ delay(10);
+ tries++;
+ }
+ if (tries == MAX_TRY_SERIAL) {
+ //Serial.println(" TIMED OUT WAITING FOR SERIAL.");
+ return -1;
+ }
+ msb = DYPSensor.read();
+ }
+
+// now we collect MSB, LSB, Checksum..
+ while ( not DYPSensor.available() ) {
+ delay(10);
+ }
+ msb = DYPSensor.read();
+
+while ( not DYPSensor.available() ) {
+ delay(10);
+ }
+ lsb = DYPSensor.read();
+
+while ( not DYPSensor.available() ) {
+ delay(10);
+ }
+ checksum = DYPSensor.read();
+
+// is the checksum ok?
+ checkcalc = 255 + msb + lsb;
+
+if (checksum == checkcalc) {
+ distance = msb * 256 + lsb;
+ // Round from mm to cm
+ distance += 5;
+ distance = distance / 10;
+
+return distance;
+ } else {
+ //Serial.println("bad checksum - ignoring reading.");
+ return -1;
+ }
+
+} // end of GetDistance()  
