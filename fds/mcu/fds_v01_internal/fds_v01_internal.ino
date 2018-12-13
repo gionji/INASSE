@@ -11,10 +11,8 @@
 #define OUT_REG_TYPE uint8_t
 
 // Pins declaration
-#define AIR_IN_TEMP_ONE_WIRE_BUS   5 
-#define AIR_OUT_TEMP_ONE_WIRE_BUS  5 
-#define INSIDE_TEMP_ONE_WIRE_BUS   5 
-#define FLOOD_PIN                  8 
+#define ONE_WIRE_BUS   4 
+#define FLOOD_PIN      8 
 
 // I2C registers descriptions
 #define EVENT_GET_AIR_IN           0x20
@@ -30,7 +28,7 @@ OUT_REG_TYPE VALUE_FLOODING_STATUS     = 0;
 
 // Local variables
 uint8_t EVENT = 0;
-OneWire  ds(AIR_IN_TEMP_ONE_WIRE_BUS);
+OneWire  ds(ONE_WIRE_BUS);
 DallasTemperature sensors(&ds);
 float airIn, airOut, airInside;
 int isFlooded;
@@ -74,6 +72,22 @@ void loop() {
   VALUE_AIR_INSIDE      = (OUT_REG_TYPE) 23;
   VALUE_FLOODING_STATUS = (OUT_REG_TYPE) 24;
 */
+
+
+  if(Serial.available() > 0){
+    if(Serial.read() == '1'){
+      Serial.print(VALUE_AIR_IN);
+      Serial.print("  ");
+      Serial.print(VALUE_AIR_OUT);
+      Serial.print("  ");
+      Serial.print(VALUE_AIR_INSIDE);
+      Serial.print("  ");
+      Serial.print(VALUE_FLOODING_STATUS);
+      Serial.println("  ");
+    }
+  }
+
+
   digitalWrite(13, HIGH);
   delay(10);
   digitalWrite(13, LOW);

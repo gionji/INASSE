@@ -10,7 +10,7 @@
 
 // Pins declaration
 #define PYROMETER_PIN        A0
-#define TEMP_ONE_WIRE_BUS    5 
+#define TEMP_ONE_WIRE_BUS    4 
 #define INTERRUPT_0_PIN      2 // interrupt 0 pin
 
 // I2C registers descriptions
@@ -87,6 +87,22 @@ void loop() {
   VALUE_PYRO         = (uint8_t) 15;
 */
 
+  if(Serial.available() > 0){
+    if(Serial.read() == '1'){
+      Serial.print(VALUE_TEMP_PANEL_1);
+      Serial.print("  ");
+      Serial.print(VALUE_TEMP_PANEL_2);
+      Serial.print("  ");
+      Serial.print(VALUE_TEMP_ENV);
+      Serial.print("  ");
+      Serial.print(VALUE_WIND);
+      Serial.print("  ");
+      Serial.print(VALUE_PYRO);
+      Serial.println("  ");
+    }
+  }
+
+
   digitalWrite(13, HIGH);
   delay(10);
   digitalWrite(13, LOW);
@@ -137,3 +153,36 @@ void requestEvent() {
 void interrupt0Handler(){
   int0count++;
   }
+
+
+void discoverOneWireDevices(void) {
+  byte i;
+  byte present = 0;
+  byte data[12];
+  byte addr[8];
+
+  Serial.print("Looking for 1-Wire devices...\n\r");
+  while(ds.search(addr)) {
+    Serial.print("\n\rFound \'1-Wire\' device with address:\n\r");
+
+    for( i = 0; i < 8; i++) {
+      Serial.print("0x");
+      if (addr[i] < 16) {
+        Serial.print('0');
+      }
+      Serial.print(addr[i], HEX);
+
+      if (i < 7) {
+        Serial.print(", ");
+      }
+    }
+    if ( OneWire::crc8( addr, 7) != addr[7]) {
+        Serial.print("CRC is not valid!\n");
+        return;
+    }
+  }
+  Serial.print("\n\r\n\rThat's it.\r\n");
+  ds.reset_search();
+  return;
+}
+

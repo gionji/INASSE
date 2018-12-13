@@ -10,6 +10,7 @@
 
 // Pins declaration
 #define PRESSURE_IN_PIN        A0
+#define PRESSURE_MIDDLE_PIN    A3
 #define PRESSURE_OUT_PIN       A1
 #define UV_PIN                 A2
 #define INTERRUPT_0_PIN      2 // interrupt 0 pin
@@ -24,10 +25,12 @@
 #define EVENT_GET_FLUX_OUT        0x34
 #define EVENT_GET_WATER_TEMP      0x35
 #define EVENT_GET_WATER_LEVEL     0x36
+#define EVENT_GET_PRESSURE_MIDDLE 0x37
 
 // Output variables
 uint8_t VALUE_PRESSURE_IN = 0;
 uint8_t VALUE_PRESSURE_OUT = 0;
+uint8_t VALUE_PRESSUER_MIDDLE = 0;
 uint8_t VALUE_UV = 0;
 uint8_t VALUE_FLUX_IN = 0;
 uint8_t VALUE_FLUX_OUT = 0;
@@ -40,11 +43,12 @@ uint8_t EVENT = 0;
 OneWire  ds(TEMP_ONE_WIRE_BUS);
 DallasTemperature sensors(&ds);
 float waterTemp;
-int pressureIn, pressureOut, uv, fluxIn, fluxOut, waterLevel;
+int pressureIn, pressureOut, pressureMiddle, uv, fluxIn, fluxOut, waterLevel;
 SoftwareSerial DYPSensor(9, 10); // RX, TX
 
 // Thresholds
 const int MAX_TRY_SERIAL = 50;
+const int CYCLES = 10;
 
 
 void setup() { 
@@ -77,6 +81,7 @@ void loop() {
   uv = analogRead(UV_PIN);
   pressureIn  = analogRead(PRESSURE_IN_PIN);
   pressureOut = analogRead(PRESSURE_OUT_PIN);
+  pressureMiddle = analogRead(PRESSURE_MIDDLE_PIN);  
   waterLevel = GetDistance();
   waterTemp = sensors.getTempCByIndex(0);
 
@@ -108,7 +113,7 @@ Checksum byte: Value should equal 0xFF + H_DATA + L_DATA  (only lowest 8 bits)
   VALUE_PRESSURE_OUT = (uint8_t) pressureOut >> 2;
   VALUE_WATER_TEMP   = (uint8_t) waterTemp  + 128;
   VALUE_WATER_LEVEL  = (uint8_t) waterLevel;
-
+  VALUE_PRESSURE_MIDDLE = (uint8_t) pressureMiddle >> 2;
 /*
   VALUE_PRESSURE_IN  = (uint8_t) 31;
   VALUE_PRESSURE_OUT = (uint8_t) 32;
@@ -118,6 +123,30 @@ Checksum byte: Value should equal 0xFF + H_DATA + L_DATA  (only lowest 8 bits)
   VALUE_WATER_TEMP   = (uint8_t) 36;
   VALUE_WATER_LEVEL  = (uint8_t) 37;
 */
+
+
+  if(Serial.available() > 0){
+    if(Serial.read() == '1'){
+      Serial.print(VALUE_FLUX_IN);
+      Serial.print("  ");
+      Serial.print(VALUE_FLUX_OUT);
+      Serial.print("  ");
+      Serial.print(VALUE_UV);
+      Serial.print("  ");
+      Serial.print(VALUE_PRESSURE_IN);
+      Serial.print("  ");
+      Serial.print(VALUE_PRESSURE_OUT);
+      Serial.print("  ");
+      Serial.print(VALUE_PRESSURE_MIDDLE);
+      Serial.print("  ");
+      Serial.print(VALUE_WATER_TEMP);
+      Serial.print("  ");
+      Serial.print(VALUE_WATER_LEVEL);
+
+      Serial.println("  ");
+    }
+  }
+
   
   digitalWrite(13, HIGH);
   delay(10);
@@ -145,6 +174,9 @@ void requestEvent() {
       break;
     case EVENT_GET_PRESSURE_OUT: 
       Wire.write(VALUE_PRESSURE_OUT);
+      break;
+    case EVENT_GET_PRESSURE_MIDDLE:
+      Wire.write(VALUE_PRESSURE_MIDDLE);
       break;
     case EVENT_GET_UV: 
       Wire.write(VALUE_UV);
@@ -183,6 +215,11 @@ void interrupt1Handler(){
 
 
 int GetDistance() {
+ int mean   = 0;
+ int valids = 0;
+
+
+for(int i=0; i<CYCLES; i++){
  byte msb, lsb, checksum, checkcalc, tries = 0;
  int distance;
 
@@ -225,10 +262,14 @@ if (checksum == checkcalc) {
  distance += 5;
  distance = distance / 10;
 
-return distance;
+ mean += distance;
+ valids++;
  } else {
- //Serial.println("bad checksum - ignoring reading.");
- return -1;
+  //Serial.println("bad checksum - ignoring reading.");
+  //return -1;
  }
 
+}
+
+return mean/valids;
 } // end of GetDistance()  
