@@ -30,7 +30,7 @@
 // Output variables
 uint8_t VALUE_PRESSURE_IN = 0;
 uint8_t VALUE_PRESSURE_OUT = 0;
-uint8_t VALUE_PRESSUER_MIDDLE = 0;
+uint8_t VALUE_PRESSURE_MIDDLE = 0;
 uint8_t VALUE_UV = 0;
 uint8_t VALUE_FLUX_IN = 0;
 uint8_t VALUE_FLUX_OUT = 0;
@@ -142,7 +142,6 @@ Checksum byte: Value should equal 0xFF + H_DATA + L_DATA  (only lowest 8 bits)
       Serial.print(VALUE_WATER_TEMP);
       Serial.print("  ");
       Serial.print(VALUE_WATER_LEVEL);
-
       Serial.println("  ");
     }
   }

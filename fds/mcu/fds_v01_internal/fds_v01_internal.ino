@@ -66,14 +66,6 @@ void loop() {
   VALUE_AIR_INSIDE      = (OUT_REG_TYPE) (airInside + 128);
   VALUE_FLOODING_STATUS = (OUT_REG_TYPE) isFlooded;
 
-/*
-  VALUE_AIR_IN          = (OUT_REG_TYPE) 21;
-  VALUE_AIR_OUT         = (OUT_REG_TYPE) 22;
-  VALUE_AIR_INSIDE      = (OUT_REG_TYPE) 23;
-  VALUE_FLOODING_STATUS = (OUT_REG_TYPE) 24;
-*/
-
-
   if(Serial.available() > 0){
     if(Serial.read() == '1'){
       Serial.print(VALUE_AIR_IN);
@@ -86,7 +78,6 @@ void loop() {
       Serial.println("  ");
     }
   }
-
 
   digitalWrite(13, HIGH);
   delay(10);

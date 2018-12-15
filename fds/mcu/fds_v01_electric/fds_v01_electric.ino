@@ -80,12 +80,19 @@ void loop() {
   VALUE_AC2 = (uint8_t)(Irms2 * SCALE_AC2);
   VALUE_AC3 = (uint8_t)(Irms3 * SCALE_AC3);
 
-/*
-  VALUE_CC  = 41;
-  VALUE_AC1 = 42;
-  VALUE_AC2 = 43;
-  VALUE_AC3 = 44;
-*/
+  if(Serial.available() > 0){
+    if(Serial.read() == '1'){
+      Serial.print(VALUE_CC);
+      Serial.print("  ");
+      Serial.print(VALUE_AC1);
+      Serial.print("  ");
+      Serial.print(VALUE_AC2);
+      Serial.print("  ");
+      Serial.print(VALUE_AC3);
+      Serial.println("  ");
+    }
+  }
+  
   digitalWrite(13, HIGH);
   delay(10);
   digitalWrite(13, LOW);
