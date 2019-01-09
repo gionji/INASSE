@@ -82,13 +82,13 @@ void loop() {
 
   if(Serial.available() > 0){
     if(Serial.read() == '1'){
-      Serial.print(VALUE_CC);
+      Serial.print(Icc);
       Serial.print("  ");
-      Serial.print(VALUE_AC1);
+      Serial.print(Irms1);
       Serial.print("  ");
-      Serial.print(VALUE_AC2);
+      Serial.print(Irms2);
       Serial.print("  ");
-      Serial.print(VALUE_AC3);
+      Serial.print(Irms3);
       Serial.println("  ");
     }
   }
@@ -104,10 +104,7 @@ void receiveEvent(int countToRead) {
   byte x;
   while (0 < Wire.available()) {
     x = Wire.read();
-    //Serial.println(x, HEX);
   }
-  //String message = "Receive event: ";
-  //String out = message + x;
   
   EVENT = x;
 }

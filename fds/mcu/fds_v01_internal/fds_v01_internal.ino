@@ -51,7 +51,7 @@ void setup() {
 
 void loop() {
 
-  discoverOneWireDevices();
+  //discoverOneWireDevices();
 
   sensors.requestTemperatures();
   //Serial.println(sensors.getTempCByIndex(0));

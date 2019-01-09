@@ -10,12 +10,12 @@
 
 // Pins declaration
 #define PRESSURE_IN_PIN        A0
-#define PRESSURE_MIDDLE_PIN    A3
+#define PRESSURE_MIDDLE_PIN    A2
 #define PRESSURE_OUT_PIN       A1
-#define UV_PIN                 A2
+#define UV_PIN                 A3
 #define INTERRUPT_0_PIN      2 // interrupt 0 pin
 #define INTERRUPT_1_PIN      3 // interrupt 1 pin
-#define TEMP_ONE_WIRE_BUS    8 
+#define TEMP_ONE_WIRE_BUS    5 
 
 // I2C registers descriptions
 #define EVENT_GET_PRESSURE_IN     0x30
@@ -53,7 +53,7 @@ const int CYCLES = 10;
 
 void setup() { 
   Serial.begin(115200);
-  attachInterrupt(0, interrupt0Handler, RISING);
+  attachInterrupt(0, interrupt0Handler,  RISING);
   attachInterrupt(1, interrupt1Handler,  RISING);
   pinMode(INTERRUPT_0_PIN, INPUT);
   pinMode(INTERRUPT_1_PIN,  INPUT);
@@ -78,24 +78,14 @@ void loop() {
 
   sensors.requestTemperatures();
 
-  uv = analogRead(UV_PIN);
+  uv = 0;
   pressureIn  = analogRead(PRESSURE_IN_PIN);
   pressureOut = analogRead(PRESSURE_OUT_PIN);
   pressureMiddle = analogRead(PRESSURE_MIDDLE_PIN);  
   waterLevel = GetDistance();
   waterTemp = sensors.getTempCByIndex(0);
 
-  Serial.println(waterLevel);
-
-/*
- * 
- * 0xFF: frame start marker byte.
-H_DATA: distance data of high eight.
-L_DATA: distance data of low 8 bits.
-Checksum byte: Value should equal 0xFF + H_DATA + L_DATA  (only lowest 8 bits)
- */
-
-
+  // Serial.println(waterLevel);
 
   // counting interrupts
   sei();
@@ -127,20 +117,21 @@ Checksum byte: Value should equal 0xFF + H_DATA + L_DATA  (only lowest 8 bits)
 
   if(Serial.available() > 0){
     if(Serial.read() == '1'){
+      Serial.print("flIn  ");
       Serial.print(VALUE_FLUX_IN);
-      Serial.print("  ");
+      Serial.print(" flOut  ");
       Serial.print(VALUE_FLUX_OUT);
-      Serial.print("  ");
+      Serial.print(" uv ");
       Serial.print(VALUE_UV);
-      Serial.print("  ");
+      Serial.print(" pin  ");
       Serial.print(VALUE_PRESSURE_IN);
-      Serial.print("  ");
+      Serial.print(" pout ");
       Serial.print(VALUE_PRESSURE_OUT);
-      Serial.print("  ");
+      Serial.print(" pmid ");
       Serial.print(VALUE_PRESSURE_MIDDLE);
-      Serial.print("  ");
+      Serial.print(" wt ");
       Serial.print(VALUE_WATER_TEMP);
-      Serial.print("  ");
+      Serial.print(" wl ");
       Serial.print(VALUE_WATER_LEVEL);
       Serial.println("  ");
     }
