@@ -16,6 +16,8 @@
 #define INTERRUPT_0_PIN      2 // interrupt 0 pin
 #define INTERRUPT_1_PIN      3 // interrupt 1 pin
 #define TEMP_ONE_WIRE_BUS    5 
+#define SERIAL_RX_PIN        9
+#define SERIAL_TX_PIN        10
 
 // I2C registers descriptions
 #define EVENT_GET_PRESSURE_IN     0x30
@@ -44,7 +46,7 @@ OneWire  ds(TEMP_ONE_WIRE_BUS);
 DallasTemperature sensors(&ds);
 float waterTemp;
 int pressureIn, pressureOut, pressureMiddle, uv, fluxIn, fluxOut, waterLevel;
-SoftwareSerial DYPSensor(9, 10); // RX, TX
+SoftwareSerial DYPSensor(SERIAL_RX_PIN, SERIAL_TX_PIN); // RX, TX
 
 // Thresholds
 const int MAX_TRY_SERIAL = 50;
@@ -52,6 +54,7 @@ const int CYCLES = 10;
 
 
 void setup() { 
+
   Serial.begin(115200);
   attachInterrupt(0, interrupt0Handler,  RISING);
   attachInterrupt(1, interrupt1Handler,  RISING);

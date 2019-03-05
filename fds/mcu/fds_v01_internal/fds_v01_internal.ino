@@ -3,7 +3,7 @@
 #include <math.h>
 #include <OneWire.h> 
 #include <DallasTemperature.h>
-
+#include <DHT.h>
 
 // Device address
 #define I2C_ADDR                   0x22
@@ -11,28 +11,33 @@
 #define OUT_REG_TYPE uint8_t
 
 // Pins declaration
-#define ONE_WIRE_BUS   4 
-#define FLOOD_PIN      8 
+#define ONE_WIRE_BUS   5 
+#define DHT11_BUS      6 
+#define FLOOD_PIN      7 
 
 // I2C registers descriptions
 #define EVENT_GET_AIR_IN           0x20
 #define EVENT_GET_AIR_OUT          0x21
 #define EVENT_GET_AIR_INSIDE       0x22
 #define EVENT_GET_FLOODING_STATUS  0x23
+#define EVENT_GET_DHT11_AIR        0x24
+#define EVENT_GET_DHT11_HUMIDITY   0x25
 
 // Output variables
 OUT_REG_TYPE VALUE_AIR_IN              = 0;
 OUT_REG_TYPE VALUE_AIR_OUT             = 0;
 OUT_REG_TYPE VALUE_AIR_INSIDE          = 0;
 OUT_REG_TYPE VALUE_FLOODING_STATUS     = 0;
+OUT_REG_TYPE VALUE_DHT11_AIR           = 0;
+OUT_REG_TYPE VALUE_DHT11_HUMIDITY      = 0;
 
 // Local variables
 uint8_t EVENT = 0;
 OneWire  ds(ONE_WIRE_BUS);
 DallasTemperature sensors(&ds);
-float airIn, airOut, airInside;
+float airIn, airOut, airInside, dht11air, dht11humidity;
 int isFlooded;
-
+DHT dht(DHT11_BUS, DHT11);
 
 
 void setup() { 
@@ -41,12 +46,12 @@ void setup() {
   sensors.begin();
   // Output pin muxing
   pinMode(13, OUTPUT);
+  dht.begin();
 
   // I2c slave mode enabling
   Wire.begin(I2C_ADDR);
   Wire.onRequest(requestEvent); // data request to slave
-  Wire.onReceive(receiveEvent); // data slave received
-  
+  Wire.onReceive(receiveEvent); // data slave received 
 }
 
 void loop() {
@@ -54,17 +59,20 @@ void loop() {
   //discoverOneWireDevices();
 
   sensors.requestTemperatures();
-  //Serial.println(sensors.getTempCByIndex(0));
 
-  airIn     = sensors.getTempCByIndex(0);
-  airOut    = sensors.getTempCByIndex(1);
-  airInside = sensors.getTempCByIndex(2);
-  isFlooded = digitalRead(FLOOD_PIN);
+  airIn         = sensors.getTempCByIndex(0);
+  airOut        = sensors.getTempCByIndex(1);
+  airInside     = sensors.getTempCByIndex(2);
+  isFlooded     = digitalRead(FLOOD_PIN);  
+  dht11air      = dht.readHumidity();
+  dht11humidity = dht.readTemperature();
 
   VALUE_AIR_IN          = (OUT_REG_TYPE) (airIn + 128);
   VALUE_AIR_OUT         = (OUT_REG_TYPE) (airOut + 128);
   VALUE_AIR_INSIDE      = (OUT_REG_TYPE) (airInside + 128);
   VALUE_FLOODING_STATUS = (OUT_REG_TYPE) isFlooded;
+  VALUE_DHT11_AIR       = (OUT_REG_TYPE) (dht11air + 128);
+  VALUE_DHT11_HUMIDITY  = (OUT_REG_TYPE) (dht11humidity + 128);
 
   if(Serial.available() > 0){
     if(Serial.read() == '1'){
@@ -75,6 +83,10 @@ void loop() {
       Serial.print(VALUE_AIR_INSIDE);
       Serial.print("  ");
       Serial.print(VALUE_FLOODING_STATUS);
+      Serial.print("  ");
+      Serial.print(VALUE_DHT11_AIR);
+      Serial.print("  ");
+      Serial.print(VALUE_DHT11_HUMIDITY);
       Serial.println("  ");
     }
   }
@@ -90,7 +102,6 @@ void receiveEvent(int countToRead) {
   byte x;
   while (0 < Wire.available()) {
     x = Wire.read();
-    //Serial.println(x, HEX);
   }
   String message = "Receive event: ";
   String out = message + x;
@@ -111,6 +122,12 @@ void requestEvent() {
       break;
     case EVENT_GET_FLOODING_STATUS: 
       Wire.write(VALUE_FLOODING_STATUS);
+      break;
+    case EVENT_GET_DHT11_AIR: 
+      Wire.write(VALUE_DHT11_AIR);
+      break;
+    case EVENT_GET_DHT11_HUMIDITY: 
+      Wire.write(VALUE_DHT11_HUMIDITY);
       break;
     default:
       Wire.write(0xFF);

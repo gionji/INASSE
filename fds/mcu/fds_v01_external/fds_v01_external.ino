@@ -10,7 +10,7 @@
 
 // Pins declaration
 #define PYROMETER_PIN        A0
-#define TEMP_ONE_WIRE_BUS    4 
+#define TEMP_ONE_WIRE_BUS    5 
 #define INTERRUPT_0_PIN      2 // interrupt 0 pin
 
 // I2C registers descriptions
@@ -24,8 +24,8 @@
 uint8_t VALUE_TEMP_PANEL_1 = 0;
 uint8_t VALUE_TEMP_PANEL_2 = 0;
 uint8_t VALUE_TEMP_ENV     = 0;
-uint8_t VALUE_WIND         = 0;
 uint8_t VALUE_PYRO         = 0;
+uint8_t VALUE_WIND         = 0;
 
 // Local variables
 volatile int int0count =0;
@@ -87,9 +87,9 @@ void loop() {
       Serial.print("  ");
       Serial.print(VALUE_TEMP_ENV);
       Serial.print("  ");
-      Serial.print(VALUE_WIND);
-      Serial.print("  ");
       Serial.print(VALUE_PYRO);
+      Serial.print("  ");
+      Serial.print(VALUE_WIND);
       Serial.println("  ");
     }
   }
