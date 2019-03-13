@@ -1,14 +1,22 @@
-// Define the ARDUINO station
-//#define IS_EXTERNAL 1
+// Define the ARDUINO station ///////////////////////////////////
+
+#define IS_EXTERNAL 1
 //#define IS_INTERNAL 1
 //#define IS_HYDRAULIC 1
-#define IS_ELECTRIC 1
+//#define IS_ELECTRIC 1
 
+//////////////////////////////////////////////////////////////////
 
+#define FIRMWARE_VERSION 3
 
 // Included libraries
 #include <Wire.h>
 #include <math.h>
+
+#ifdef IS_EXTERNAL 
+#include <OneWire.h> 
+#include <DallasTemperature.h>
+#endif
 
 #ifdef IS_INTERNAL
 #include <DHT.h>
@@ -57,6 +65,9 @@
 /*
  * I2C registers descriptions
  */
+
+#define EVENT_GET_FIRMWARE_VERSION          0x80
+ 
 #define EVENT_GET_TEMP_PANEL_1     0x10
 #define EVENT_GET_TEMP_PANEL_2     0x14
 #define EVENT_GET_TEMP_ENV         0x18
@@ -115,6 +126,8 @@
 /*
  * Output variables
  */
+uint8_t VALUE_FIRMWARE_VERSION = (uint8_t) FIRMWARE_VERSION;
+ 
 float VALUE_TEMP_PANEL_1       = 0;
 float VALUE_TEMP_PANEL_2       = 0;
 float VALUE_TEMP_ENV           = 0;
@@ -198,7 +211,7 @@ void setup() {
 	#elif IS_HYDRAULIC
 		attachInterrupt(0, interrupt0Handler,  RISING);
 		attachInterrupt(1, interrupt1Handler,  RISING);
-		pinMode(INTERRUPT_0_PIN, INPUT);
+		pinMode(INTERRUPT_0_PIN,  INPUT);
 		pinMode(INTERRUPT_1_PIN,  INPUT);
 		DYPSensor.begin(9600);
 	#elif IS_ELECTRIC
@@ -237,11 +250,12 @@ void loop() {
 		wind = int0count;
 		pyro = analogRead(PYROMETER_PIN);
 
-		VALUE_TEMP_PANEL_1 = (uint8_t)  (tempPanel1 + 128);
-		VALUE_TEMP_PANEL_2 = (uint8_t)  (tempPanel2 + 128);
-		VALUE_TEMP_ENV     = (uint8_t)  (tempEnv    + 128);
-		VALUE_WIND         = (uint8_t)  wind; 
-		VALUE_PYRO         = (uint8_t)  pyro >> 2; // guadagno LM358?
+		VALUE_TEMP_PANEL_1 = (float)  tempPanel1;
+		VALUE_TEMP_PANEL_2 = (float)  tempPanel2;
+		VALUE_TEMP_ENV     = (float)  tempEnv;
+		VALUE_WIND         = (int)  wind; 
+		VALUE_PYRO         = (int)  pyro; // guadagno LM358?
+   
 	#elif IS_INTERNAL
 		airIn         = sensors.getTempCByIndex(0);
 		airOut        = sensors.getTempCByIndex(1);
@@ -250,12 +264,13 @@ void loop() {
 		dht11air      = dht.readHumidity();
 		dht11humidity = dht.readTemperature();
 
-		VALUE_AIR_IN          = (uint8_t) (airIn + 128);
-		VALUE_AIR_OUT         = (uint8_t) (airOut + 128);
-		VALUE_AIR_INSIDE      = (uint8_t) (airInside + 128);
+		VALUE_AIR_IN          = airIn;
+		VALUE_AIR_OUT         = airOut;
+		VALUE_AIR_INSIDE      = airInside;
 		VALUE_FLOODING_STATUS = (uint8_t) isFlooded;
-		VALUE_DHT11_AIR       = (uint8_t) (dht11air + 128);
-		VALUE_DHT11_HUMIDITY  = (uint8_t) (dht11humidity + 128);
+		VALUE_DHT11_AIR       = dht11air;
+		VALUE_DHT11_HUMIDITY  = dht11humidity;
+    
 	#elif IS_HYDRAULIC  
 		int0count  = 0;
 		int1count  = 0;
@@ -277,29 +292,25 @@ void loop() {
 		fluxIn  = int0count;
 		fluxOut = int1count;
 
-		VALUE_FLUX_IN      = (uint8_t) fluxIn;
-		VALUE_FLUX_OUT     = (uint8_t) fluxOut;
-		VALUE_UV           = (uint8_t) uv >> 2;
-		VALUE_PRESSURE_IN  = (uint8_t) pressureIn  >> 2;
-		VALUE_PRESSURE_OUT = (uint8_t) pressureOut >> 2;
-		VALUE_WATER_TEMP   = (uint8_t) waterTemp  + 128;
-		VALUE_WATER_LEVEL  = (uint8_t) waterLevel;
-		VALUE_PRESSURE_MIDDLE = (uint8_t) pressureMiddle >> 2;
+		VALUE_FLUX_IN      = (int) fluxIn;
+		VALUE_FLUX_OUT     = (int) fluxOut;
+		VALUE_UV           = (uint8_t) 0;
+		VALUE_PRESSURE_IN  = (float) pressureIn;
+		VALUE_PRESSURE_OUT = (float) pressureOut;
+		VALUE_WATER_TEMP   = (float) waterTemp;
+		VALUE_WATER_LEVEL  = (int) waterLevel;
+		VALUE_PRESSURE_MIDDLE = (float) pressureMiddle;
+    
 	#elif IS_ELECTRIC
 		int Icc = analogRead(CC_OUTPUT_PIN);
 		double Irms1 = acOutput1.calcIrms(1480);  // Calculate Irms only
 		double Irms2 = acOutput2.calcIrms(1480);  // Calculate Irms only
 		double Irms3 = acOutput3.calcIrms(1480);  // Calculate Irms only
 
-		if (Irms1 > 254.0) Irms1 = 255;
-		if (Irms2 > 254.0) Irms2 = 255;
-		if (Irms3 > 254.0) Irms3 = 255;
-		if (Icc   > 254.0)   Icc = 255;
-
-		VALUE_CC  = (uint8_t)(Icc   * SCALE_CC );
-		VALUE_AC1 = (uint8_t)(Irms1 * SCALE_AC1);
-		VALUE_AC2 = (uint8_t)(Irms2 * SCALE_AC2);
-		VALUE_AC3 = (uint8_t)(Irms3 * SCALE_AC3);
+		VALUE_CC  = (float)(Icc   * SCALE_CC );
+		VALUE_AC1 = (float)(Irms1 * SCALE_AC1);
+		VALUE_AC2 = (float)(Irms2 * SCALE_AC2);
+		VALUE_AC3 = (float)(Irms3 * SCALE_AC3);
 	#endif
 
 
@@ -308,7 +319,7 @@ void loop() {
 	digitalWrite(13, LOW);
 	delay(10);
 
-	delay(50);
+	delay(100);
 }
 
 
@@ -329,6 +340,9 @@ uint8_t b = 0;
 void requestEvent() {
   String event_s = "0xFF";
   switch (EVENT) {
+    case EVENT_GET_FIRMWARE_VERSION: 
+      Wire.write( VALUE_FIRMWARE_VERSION );
+      break;
 
     #ifdef IS_EXTERNAL
     case EVENT_GET_TEMP_PANEL_1 + 0: 
@@ -383,20 +397,20 @@ void requestEvent() {
       break;
       
     case EVENT_GET_PYRO + 0: 
-      b = float2Bytes(VALUE_PYRO, 0);
+      b = int2Bytes(VALUE_PYRO, 0);
       Wire.write( b );
       break;      
     case EVENT_GET_PYRO + 1: 
-      b = float2Bytes(VALUE_PYRO, 1);
+      b = int2Bytes(VALUE_PYRO, 1);
       Wire.write( b );
       break;
       
     case EVENT_GET_WIND + 0: 
-      b = float2Bytes(VALUE_WIND, 0);
+      b = int2Bytes(VALUE_WIND, 0);
       Wire.write( b );
       break;
     case EVENT_GET_WIND + 1: 
-      b = float2Bytes(VALUE_WIND, 1);
+      b = int2Bytes(VALUE_WIND, 1);
       Wire.write( b );
       break;
 
@@ -547,20 +561,20 @@ void requestEvent() {
       break;
      
     case EVENT_GET_FLUX_IN + 0: 
-      b = float2Bytes(VALUE_FLUX_IN, 0);
+      b = int2Bytes(VALUE_FLUX_IN, 0);
       Wire.write( b );
       break;
     case EVENT_GET_FLUX_IN + 1: 
-      b = float2Bytes(VALUE_FLUX_IN, 1);
+      b = int2Bytes(VALUE_FLUX_IN, 1);
       Wire.write( b );
       break;
    
     case EVENT_GET_FLUX_OUT + 0: 
-      b = float2Bytes(VALUE_FLUX_OUT, 0);
+      b = int2Bytes(VALUE_FLUX_OUT, 0);
       Wire.write( b );
       break;
     case EVENT_GET_FLUX_OUT + 1: 
-      b = float2Bytes(VALUE_FLUX_OUT, 1);
+      b = int2Bytes(VALUE_FLUX_OUT, 1);
       Wire.write( b );
       break;
 
@@ -582,11 +596,11 @@ void requestEvent() {
       break;
 
     case EVENT_GET_WATER_LEVEL + 0: 
-      b = float2Bytes(VALUE_WATER_LEVEL, 0);
+      b = int2Bytes(VALUE_WATER_LEVEL, 0);
       Wire.write( b );
       break;
     case EVENT_GET_WATER_LEVEL + 1: 
-      b = float2Bytes(VALUE_WATER_LEVEL, 1);
+      b = int2Bytes(VALUE_WATER_LEVEL, 1);
       Wire.write( b );
       break;
 
