@@ -1,22 +1,28 @@
 // Define the ARDUINO station
-#define EXTERNAL
-#define INTERNAL
-#define HYDRAULIC
-#define ELECTRIC
+//#define IS_EXTERNAL 1
+//#define IS_INTERNAL 1
+//#define IS_HYDRAULIC 1
+#define IS_ELECTRIC 1
 
 
 
 // Included libraries
 #include <Wire.h>
 #include <math.h>
+
+#ifdef IS_INTERNAL
+#include <DHT.h>
 #include <OneWire.h> 
 #include <DallasTemperature.h>
-
-#ifdef HYDRAULIC
-#include <SoftwareSerial.h>
 #endif
 
-#ifdef ELECTRIC
+#ifdef IS_HYDRAULIC
+#include <SoftwareSerial.h>
+#include <OneWire.h> 
+#include <DallasTemperature.h>
+#endif
+
+#ifdef IS_ELECTRIC
 #include <EmonLib.h>
 #endif
 
@@ -24,7 +30,7 @@
 /*
  * Contants
  */
-#ifdef ELECTRIC
+#ifdef IS_ELECTRIC
 	#define EMON_CALIB        111.0
 	#define EMON_IRMS_CALIB   1480
 	#define SCALE_CC          1.0
@@ -37,13 +43,13 @@
 /*
  * Define slave I2C
  */
-#ifdef EXTERNAL 
+#ifdef IS_EXTERNAL 
 	#define I2C_ADDR      0x21 
-#elif INTERNAL
+#elif IS_INTERNAL
 	#define I2C_ADDR      0x22 
-#elif HYDRAULIC
+#elif IS_HYDRAULIC
 	#define I2C_ADDR      0x23 
-#elif ELECTRIC
+#elif IS_ELECTRIC
 	#define I2C_ADDR      0x24 
 #endif
 
@@ -81,15 +87,15 @@
 /*
  * Pin declaration
  */
-#ifdef EXTERNAL
+#ifdef IS_EXTERNAL
 	#define PYROMETER_PIN        A0
 	#define TEMP_ONE_WIRE_BUS    5 
 	#define INTERRUPT_0_PIN      2 
-#elif INTERNAL
+#elif IS_INTERNAL
 	#define ONE_WIRE_BUS         5 
 	#define DHT11_BUS            6 
 	#define FLOOD_PIN            7 
-#elif HYDRAULIC
+#elif IS_HYDRAULIC
 	#define PRESSURE_IN_PIN      A0
 	#define PRESSURE_MIDDLE_PIN  A2
 	#define PRESSURE_OUT_PIN     A1
@@ -99,7 +105,7 @@
 	#define TEMP_ONE_WIRE_BUS    5 
 	#define SERIAL_RX_PIN        9
 	#define SERIAL_TX_PIN        10
-#elif ELECTRIC
+#elif IS_ELECTRIC
 	#define CC_OUTPUT_PIN         A0
 	#define AC_OUTPUT_1_PIN       A1
 	#define AC_OUTPUT_2_PIN       A2
@@ -145,20 +151,22 @@ uint8_t EVENT = 0;
 /*
  * Local variables
  */
-#ifdef EXTERNAL
-	volatile int int0count = 0;
+volatile int int0count = 0, int1count = 0;
+ 
+#ifdef IS_EXTERNAL
 	OneWire  ds(TEMP_ONE_WIRE_BUS);
 	DallasTemperature sensors(&ds);
 	float tempPanel1, tempPanel2, tempEnv;
 	int wind, pyro;
-#elif INTERNAL
+ 
+#elif IS_INTERNAL
 	OneWire  ds(ONE_WIRE_BUS);
 	DallasTemperature sensors(&ds);
 	float airIn, airOut, airInside, dht11air, dht11humidity;
 	int isFlooded;
 	DHT dht(DHT11_BUS, DHT11);
-#elif HYDRAULIC
-	volatile int int0count = 0, int1count = 0;
+  
+#elif IS_HYDRAULIC
 	OneWire  ds(TEMP_ONE_WIRE_BUS);
 	DallasTemperature sensors(&ds);
 	float waterTemp;
@@ -166,8 +174,8 @@ uint8_t EVENT = 0;
 	SoftwareSerial DYPSensor(SERIAL_RX_PIN, SERIAL_TX_PIN); // RX, TX
 	const int MAX_TRY_SERIAL = 50;
 	const int CYCLES = 10;
-#elif ELECTRIC
-	volatile int int0count =0, int1count=0;
+  
+#elif IS_ELECTRIC
 	EnergyMonitor acOutput1; 
 	EnergyMonitor acOutput2;
 	EnergyMonitor acOutput3; 
@@ -180,20 +188,20 @@ uint8_t EVENT = 0;
 void setup() {
 	Serial.begin(115200);
 
-	#ifdef EXTERNAL
+	#ifdef IS_EXTERNAL
 		attachInterrupt(0, interrupt0Handler, RISING);
 		pinMode(INTERRUPT_0_PIN, INPUT);
 		sensors.begin();
-	#elif INTERNAL
+	#elif IS_INTERNAL
 		sensors.begin();
 		dht.begin();
-	#elif HYDRAULIC
+	#elif IS_HYDRAULIC
 		attachInterrupt(0, interrupt0Handler,  RISING);
 		attachInterrupt(1, interrupt1Handler,  RISING);
 		pinMode(INTERRUPT_0_PIN, INPUT);
 		pinMode(INTERRUPT_1_PIN,  INPUT);
 		DYPSensor.begin(9600);
-	#elif ELECTRIC
+	#elif IS_ELECTRIC
 		acOutput1.current(AC_OUTPUT_1_PIN, EMON_CALIB);             
 		acOutput2.current(AC_OUTPUT_2_PIN, EMON_CALIB);  
 		acOutput3.current(AC_OUTPUT_3_PIN, EMON_CALIB);  
@@ -212,7 +220,7 @@ void setup() {
 
 void loop() {
 
-	#ifdef EXTERNAL  // Interrupts reset
+	#ifdef IS_EXTERNAL  // Interrupts reset
 		int0count = 0;
 		sensors.requestTemperatures();
 
@@ -234,7 +242,7 @@ void loop() {
 		VALUE_TEMP_ENV     = (uint8_t)  (tempEnv    + 128);
 		VALUE_WIND         = (uint8_t)  wind; 
 		VALUE_PYRO         = (uint8_t)  pyro >> 2; // guadagno LM358?
-	#elif INTERNAL
+	#elif IS_INTERNAL
 		airIn         = sensors.getTempCByIndex(0);
 		airOut        = sensors.getTempCByIndex(1);
 		airInside     = sensors.getTempCByIndex(2);
@@ -242,13 +250,13 @@ void loop() {
 		dht11air      = dht.readHumidity();
 		dht11humidity = dht.readTemperature();
 
-		VALUE_AIR_IN          = (OUT_REG_TYPE) (airIn + 128);
-		VALUE_AIR_OUT         = (OUT_REG_TYPE) (airOut + 128);
-		VALUE_AIR_INSIDE      = (OUT_REG_TYPE) (airInside + 128);
-		VALUE_FLOODING_STATUS = (OUT_REG_TYPE) isFlooded;
-		VALUE_DHT11_AIR       = (OUT_REG_TYPE) (dht11air + 128);
-		VALUE_DHT11_HUMIDITY  = (OUT_REG_TYPE) (dht11humidity + 128);
-	#elif HYDRAULIC  
+		VALUE_AIR_IN          = (uint8_t) (airIn + 128);
+		VALUE_AIR_OUT         = (uint8_t) (airOut + 128);
+		VALUE_AIR_INSIDE      = (uint8_t) (airInside + 128);
+		VALUE_FLOODING_STATUS = (uint8_t) isFlooded;
+		VALUE_DHT11_AIR       = (uint8_t) (dht11air + 128);
+		VALUE_DHT11_HUMIDITY  = (uint8_t) (dht11humidity + 128);
+	#elif IS_HYDRAULIC  
 		int0count  = 0;
 		int1count  = 0;
 
@@ -277,7 +285,7 @@ void loop() {
 		VALUE_WATER_TEMP   = (uint8_t) waterTemp  + 128;
 		VALUE_WATER_LEVEL  = (uint8_t) waterLevel;
 		VALUE_PRESSURE_MIDDLE = (uint8_t) pressureMiddle >> 2;
-	#elif ELECTRIC
+	#elif IS_ELECTRIC
 		int Icc = analogRead(CC_OUTPUT_PIN);
 		double Irms1 = acOutput1.calcIrms(1480);  // Calculate Irms only
 		double Irms2 = acOutput2.calcIrms(1480);  // Calculate Irms only
@@ -322,7 +330,7 @@ void requestEvent() {
   String event_s = "0xFF";
   switch (EVENT) {
 
-    #ifdef EXTERNAL
+    #ifdef IS_EXTERNAL
     case EVENT_GET_TEMP_PANEL_1 + 0: 
       b = float2Bytes(VALUE_TEMP_PANEL_1, 0);
       Wire.write( b );
@@ -392,7 +400,7 @@ void requestEvent() {
       Wire.write( b );
       break;
 
-    #elif INTERNAL
+    #elif IS_INTERNAL
     case EVENT_GET_AIR_IN + 0: 
       b = float2Bytes(VALUE_AIR_IN, 0);
       Wire.write( b );
@@ -482,7 +490,7 @@ void requestEvent() {
       Wire.write( b );
       break;
 
-    #elif HYDRAULIC
+    #elif IS_HYDRAULIC
     case EVENT_GET_PRESSURE_IN + 0: 
       b = float2Bytes(VALUE_PRESSURE_IN, 0);
       Wire.write( b );
@@ -582,8 +590,7 @@ void requestEvent() {
       Wire.write( b );
       break;
 
-    #elif ELECTRIC
-
+  #elif IS_ELECTRIC
     case EVENT_GET_CC_CURRENT + 0: 
       b = float2Bytes(VALUE_CC, 0);
       Wire.write( b );
@@ -651,8 +658,8 @@ void requestEvent() {
       b = float2Bytes(VALUE_AC3, 3);
       Wire.write( b );
       break;
-
     #endif  
+    
     default:
       Wire.write(0xFF);
       break;
@@ -673,15 +680,19 @@ uint8_t int2Bytes(int intVal, int id){
 }
 
 
+
 void interrupt0Handler(){
 	int0count++;
 }
 
+
+#ifdef IS_HYDRAULIC
 void interrupt1Handler(){
 	int1count++;
 }
+#endif
 
-
+#ifndef IS_ELECTRIC
 void discoverOneWireDevices(void) {
 	byte i;
 	byte present = 0;
@@ -712,8 +723,9 @@ void discoverOneWireDevices(void) {
 	ds.reset_search();
 	return;
 	}
+#endif
 
-#ifdef HYDRAULIC
+#ifdef IS_HYDRAULIC
 int GetDistance() {
 	int mean   = 0;
 	int valids = 0;
