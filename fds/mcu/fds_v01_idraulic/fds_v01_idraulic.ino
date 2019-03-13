@@ -13,11 +13,11 @@
 #define PRESSURE_MIDDLE_PIN    A2
 #define PRESSURE_OUT_PIN       A1
 #define UV_PIN                 A3
-#define INTERRUPT_0_PIN      2 // interrupt 0 pin
-#define INTERRUPT_1_PIN      3 // interrupt 1 pin
-#define TEMP_ONE_WIRE_BUS    5 
-#define SERIAL_RX_PIN        9
-#define SERIAL_TX_PIN        10
+#define INTERRUPT_0_PIN        2
+#define INTERRUPT_1_PIN        3 
+#define TEMP_ONE_WIRE_BUS      5 
+#define SERIAL_RX_PIN          9
+#define SERIAL_TX_PIN          10
 
 // I2C registers descriptions
 #define EVENT_GET_PRESSURE_IN     0x30
