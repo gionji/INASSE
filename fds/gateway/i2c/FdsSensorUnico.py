@@ -56,6 +56,9 @@ class FdsSensor():
 		#print("Called FdsSensor default constructor")
 		self.bus = smbus2.SMBus(SENSORS_BUS) 
 		
+	def __init__(self, busId):
+		#print("Called FdsSensor default constructor")
+		self.bus = smbus2.SMBus(busId) 
 	
 			
 		
@@ -78,46 +81,41 @@ class FdsSensor():
 
 		return value[0]
 
-
 	def read2BytesInteger(self, dev, startReg, nbytes):
 		value = [0,0]
 
 		value[0] = self.bus.read_byte_data(dev, startReg)
 		value[1] = self.bus.read_byte_data(dev, startReg+1)
-		
-		n = (value[0] & 0x000000ff) + (value[1] << 8) 
 
-		return n
+		b = struct.pack('BB', value[0], value[1])
+		value = struct.unpack('<h', b )
+
+		return value[0]
+
 
 
 		
 	## External MCU
 	def getSolarPanelTemperature1(self):		
 		#print("Requested solar panel temperature 1")	
-		value = self.read4BytesFloat(I2C_ADDR_EXTERNAL, TEMP_PANEL_1, 4)	
+		value = self.read4BytesFloat(I2C_ADDR_EXTERNAL, TEMP_PANEL_1, ARDUINO_FLOAT_SIZE)	
 		return value
-		
-		
-		
+				
 	def getSolarPanelTemperature2(self):		
 		#print("Requested solar panel temperature 2")
 		value = self.read4BytesFloat(I2C_ADDR_EXTERNAL, TEMP_PANEL_2, ARDUINO_FLOAT_SIZE)
 		return value
-		
-		
-		
+				
 	def getEnvironmentalTemperature(self):		
 		#print("Requested external temperature")
 		value = self.read4BytesFloat(I2C_ADDR_EXTERNAL, TEMP_ENV, ARDUINO_FLOAT_SIZE)	
 		return value
-				
-		
+						
 	def getIrradiation(self):		
 		#print("Requested solar irradiadion")
 		value = self.read2BytesInteger(I2C_ADDR_EXTERNAL, PYRO, ARDUINO_INT_SIZE)		
 		return value
-				
-		
+						
 	def getWindSpeed(self ):		
 		#print("Requested wind speed")
 		value = self.read2BytesInteger(I2C_ADDR_EXTERNAL, WIND, ARDUINO_INT_SIZE)		
@@ -125,45 +123,39 @@ class FdsSensor():
 		
 		
 		
+
 	
 	## Internal
 	def getInternalTemperature(self):		
 		#print("Requested internal temperature 1")
-		value = self.read4BytesFloat(I2C_ADDR_INTERNAL, AIR_INSIDE, ARDUINO_INT_SIZE)		
-		return value
-		
-		
+		value = self.read4BytesFloat(I2C_ADDR_INTERNAL, AIR_INSIDE, ARDUINO_FLOAT_SIZE)		
+		return value		
 		
 	def getIncomingTemperature(self):		
 		#print("Requested incoming air flow temperature")
 		value = self.read4BytesFloat(I2C_ADDR_INTERNAL, AIR_IN, ARDUINO_FLOAT_SIZE)		
 		return value
-		
-		
-		
+					
 	def getOutcomingTemperature(self):		
 		#print("Requested outcoming air flow temperature")	
 		value = self.read4BytesFloat(I2C_ADDR_INTERNAL, AIR_OUT, ARDUINO_FLOAT_SIZE)
 		return value
-		
-		
-		
+				
 	def getFloodStatus(self):
 		#print("Requested flooding status")
 		value = self.bus.read_byte_data(I2C_ADDR_INTERNAL, FLOODING_STATUS)	
 		return value
-		
-		
+				
 	def getDHT11Temperature(self):		
 		#print("Requested internal temperature by DHT11")
 		value = self.read4BytesFloat(I2C_ADDR_INTERNAL, DHT11_AIR, ARDUINO_FLOAT_SIZE)
 		return value
-				
-		
+
 	def getDHT11Humidity(self):		
-		#print("Requested internal humidity by DHT11")
-		value = self.read4BytesFloat(I2C_ADDR_EXTERNAL, DHT11_HUMIDITY, ARDUINO_FLOAT_SIZE)
+		#print("Requested internal temperature by DHT11")
+		value = self.read4BytesFloat(I2C_ADDR_INTERNAL, DHT11_HUMIDITY, ARDUINO_FLOAT_SIZE)
 		return value
+
 		
 		
 		
@@ -174,44 +166,37 @@ class FdsSensor():
 		#print("Requested water flux in")
 		value = self.read2BytesInteger(I2C_ADDR_HYDRAULIC, FLUX_IN, ARDUINO_INT_SIZE)
 		return value
-		
-		
+				
 	def getWaterFluxOut(self):		
 		#print("Requested water flux ouy")
 		value = self.read2BytesInteger(I2C_ADDR_HYDRAULIC, FLUX_OUT, ARDUINO_INT_SIZE)
 		return value
-			
-		
+					
 	def getPressureIn(self):		
 		#print("Requested pressure in input")
 		value = self.read4BytesFloat(I2C_ADDR_HYDRAULIC, PRESSURE_IN, ARDUINO_FLOAT_SIZE)
 		return value
-		
-		
+				
 	def getPressureMiddle(self):		
 		#print("Requested pressure in middle")
 		value = self.read4BytesFloat(I2C_ADDR_HYDRAULIC, PRESSURE_MIDDLE, ARDUINO_FLOAT_SIZE)
 		return value
-		
-				
+						
 	def getPressureOut(self):		
 		#print("Requested pressure in output")
 		value = self.read4BytesFloat(I2C_ADDR_HYDRAULIC, PRESSURE_OUT, ARDUINO_FLOAT_SIZE)
 		return value
-		
-			
+					
 	def getWaterTemperature(self):		
 		#print("Requested water temperature")
 		value = self.read4BytesFloat(I2C_ADDR_HYDRAULIC, WATER_TEMP, ARDUINO_FLOAT_SIZE)
 		return value
-		
-				
+						
 	def getWaterLevel(self):		
 		#print("Requested tank water level")
 		value = self.read2BytesInteger(I2C_ADDR_HYDRAULIC, WATER_LEVEL, ARDUINO_INT_SIZE)	
 		return value
-			
-		
+					
 	def getLampUV(self):		
 		#print("Requested UV lamp efficency")
 		return 1.0
@@ -219,12 +204,11 @@ class FdsSensor():
 	
 	
 	## Electrical
-	def getCCcurrent(self):		
+	def getCCCurrent(self):		
 		#print("Requested CC current from Shunt")
 		value = self.read4BytesFloat(I2C_ADDR_ELECTRIC, CC_CURRENT, ARDUINO_FLOAT_SIZE)
 		return value
-		
-			
+					
 	def getACCurrent(self, channel):		
 		#print("Requested AC current from clamp ", str(channel))
 		
@@ -238,8 +222,4 @@ class FdsSensor():
 		value = self.read4BytesFloat(I2C_ADDR_ELECTRIC, AC_CURRENT, ARDUINO_FLOAT_SIZE)
 		
 		return value
-	
-	
-		
-	
-	
+
