@@ -3,7 +3,7 @@
 import time
 from FdsSensorUnico import FdsSensor
 
-DELAY = 1.0
+DELAY = 0.1
 FLT_MAX = 3
 
 def resetArduino():
@@ -75,8 +75,8 @@ def main():
 #			print("Arduino ELECTRIC not found. Attempt ", arduinoEleFltCnt) 
 
 
-		if arduinoEleFltCnt > FLT_MAX:
-				resetArduino()
+		if arduinoEleFltCnt > FLT_MAX or arduinoIntFltCnt > FLT_MAX or arduinoExtFltCnt > FLT_MAX:
+			resetArduino()
 
 		time.sleep( DELAY )
 
