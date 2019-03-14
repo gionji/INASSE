@@ -118,7 +118,7 @@ class FdsSensor():
 		return value
 				
 		
-	def getWindSpeed(self, ):		
+	def getWindSpeed(self ):		
 		#print("Requested wind speed")
 		value = self.read2BytesInteger(I2C_ADDR_EXTERNAL, WIND, ARDUINO_INT_SIZE)		
 		return value
@@ -160,7 +160,7 @@ class FdsSensor():
 		return value
 				
 		
-	def getDHT11Humidity(self, nbytes):		
+	def getDHT11Humidity(self):		
 		#print("Requested internal humidity by DHT11")
 		value = self.read4BytesFloat(I2C_ADDR_EXTERNAL, DHT11_HUMIDITY, ARDUINO_FLOAT_SIZE)
 		return value
@@ -200,13 +200,13 @@ class FdsSensor():
 		return value
 		
 			
-	def getWaterTemperature(self, nbytes):		
+	def getWaterTemperature(self):		
 		#print("Requested water temperature")
 		value = self.read4BytesFloat(I2C_ADDR_HYDRAULIC, WATER_TEMP, ARDUINO_FLOAT_SIZE)
 		return value
 		
 				
-	def getWaterLevel(self, nbytes):		
+	def getWaterLevel(self):		
 		#print("Requested tank water level")
 		value = self.read2BytesInteger(I2C_ADDR_HYDRAULIC, WATER_LEVEL, ARDUINO_INT_SIZE)	
 		return value
@@ -219,7 +219,7 @@ class FdsSensor():
 	
 	
 	## Electrical
-	def getCCcurrent(self, nbytes):		
+	def getCCcurrent(self):		
 		#print("Requested CC current from Shunt")
 		value = self.read4BytesFloat(I2C_ADDR_ELECTRIC, CC_CURRENT, ARDUINO_FLOAT_SIZE)
 		return value
