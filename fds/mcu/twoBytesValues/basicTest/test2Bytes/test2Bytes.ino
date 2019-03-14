@@ -1,13 +1,13 @@
 // Define the ARDUINO station ///////////////////////////////////
 
-#define IS_EXTERNAL 1
+//#define IS_EXTERNAL 1
 //#define IS_INTERNAL 1
 //#define IS_HYDRAULIC 1
-//#define IS_ELECTRIC 1
+#define IS_ELECTRIC 1
 
 //////////////////////////////////////////////////////////////////
 
-#define FIRMWARE_VERSION 3
+
 
 // Included libraries
 #include <Wire.h>
@@ -16,22 +16,26 @@
 #ifdef IS_EXTERNAL 
 #include <OneWire.h> 
 #include <DallasTemperature.h>
+#define FIRMWARE_VERSION 1
 #endif
 
 #ifdef IS_INTERNAL
 #include <DHT.h>
 #include <OneWire.h> 
 #include <DallasTemperature.h>
+#define FIRMWARE_VERSION 2
 #endif
 
 #ifdef IS_HYDRAULIC
 #include <SoftwareSerial.h>
 #include <OneWire.h> 
 #include <DallasTemperature.h>
+#define FIRMWARE_VERSION 3
 #endif
 
 #ifdef IS_ELECTRIC
 #include <EmonLib.h>
+#define FIRMWARE_VERSION 4
 #endif
 
 
@@ -261,8 +265,8 @@ void loop() {
 		airOut        = sensors.getTempCByIndex(1);
 		airInside     = sensors.getTempCByIndex(2);
 		isFlooded     = digitalRead(FLOOD_PIN);  
-		dht11air      = dht.readHumidity();
-		dht11humidity = dht.readTemperature();
+		dht11air      = dht.readTemperature();
+		dht11humidity = dht.readHumidity();
 
 		VALUE_AIR_IN          = airIn;
 		VALUE_AIR_OUT         = airOut;
