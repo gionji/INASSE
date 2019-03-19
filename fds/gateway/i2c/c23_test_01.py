@@ -75,12 +75,14 @@ def main():
 #			print("Arduino ELECTRIC not found. Attempt ", arduinoEleFltCnt) 
 
 
-		if arduinoEleFltCnt > FLT_MAX or arduinoIntFltCnt > FLT_MAX or arduinoExtFltCnt > FLT_MAX:
+		if arduinoEleFltCnt > FLT_MAX or arduinoIntFltCnt > FLT_MAX or arduinoExtFltCnt > FLT_MAX or arduinoHydIntCnt > FLT_MAX:
 			resetArduino()
 
 		time.sleep( DELAY )
 
 		## Print the data collected
+		print("---------")
+
 		for v in values:
 			print(v)
 
