@@ -6,6 +6,10 @@ CHARGE_CONTROLLER_IP   = '192.168.0.253'
 
 SQLITE_FILENAME = './DB_fds_offgridbox.sqlite'
 
+
+'''
+
+
 MCU_DEBUG_CMD = 'd'
 MCU_READ_CMD = 'r'
 MCU_LIST_PARAM_CMD = 'l'
@@ -18,7 +22,7 @@ AWS_URL  = "fabbrica-del-sole.c91brofc69ac.us-east-2.rds.amazonaws.com"
 AWS_USER = "fds_master"
 AWS_PASS = "123qweASD"
 AWS_DB   = "offgridbox"
-
+'''
 
 
  # Define the State list

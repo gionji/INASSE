@@ -8,7 +8,7 @@
 
 __version__ = 0.5
 
-import fds_constants as fds
+import FdsDbConstants as fds
 
 
 import serial
