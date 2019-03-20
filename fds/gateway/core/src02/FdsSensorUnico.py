@@ -2,6 +2,12 @@ import smbus2
 import struct
 
 
+
+EXTERNAL  =  'mcu_external'
+INTERNAL  =  'mcu_internal'
+HYDRAULIC =  'mcu_hydraulic'
+ELECTRIC  =  'mcu_electric'
+
 # I2C addressed of Arduinos MCU connected
 I2C_ADDR_EXTERNAL =   0x21
 I2C_ADDR_INTERNAL =   0x22
@@ -222,4 +228,10 @@ class FdsSensor():
 		value = self.read4BytesFloat(I2C_ADDR_ELECTRIC, AC_CURRENT, ARDUINO_FLOAT_SIZE)
 		
 		return value
+
+	
+
+	def getMcuData(self, mcuType):
+		if mcuType is not (EXTERNAL, INTERNAL, HYDRAULIC, ELECTRIC):
+			data = {'type': mcuType }
 
