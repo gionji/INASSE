@@ -210,12 +210,12 @@ class FdsSensor():
 	
 	
 	## Electrical
-	def getCCCurrent(self):		
+	def getCcCurrent(self):		
 		#print("Requested CC current from Shunt")
 		value = self.read4BytesFloat(I2C_ADDR_ELECTRIC, CC_CURRENT, ARDUINO_FLOAT_SIZE)
 		return value
 					
-	def getACCurrent(self, channel):		
+	def getAcCurrent(self, channel):		
 		#print("Requested AC current from clamp ", str(channel))
 		
 		if channel == 1:
@@ -232,6 +232,38 @@ class FdsSensor():
 	
 
 	def getMcuData(self, mcuType):
-		if mcuType is not (EXTERNAL, INTERNAL, HYDRAULIC, ELECTRIC):
-			data = {'type': mcuType }
+	
+		if mcuType not in (EXTERNAL, INTERNAL, HYDRAULIC, ELECTRIC):
+			raise AttributeError("Wrong MCU type")
 
+		data = {'type': mcuType }
+			
+		if mcuType == EXTERNAL:
+			data['ext_temp1'] =   self.getSolarPanelTemperature1() 
+                        data['ext_temp2'] =   self.getSolarPanelTemperature2() 
+                        data['ext_env'] =   self.getEnvironmentalTemperature( )
+                        data['ext_sun'] =   self.getIrradiation() 
+                        data['ext_wind'] =   self.getWindSpeed() 
+		elif mcuType == INTERNAL:
+                        data['int_tempIn'] =   self.getIncomingTemperature()
+                        data['int_tempOut'] =   self.getOutcomingTemperature() 
+                        data['int_tempIn'] =   self.getInternalTemperature() 
+                        data['int_flood'] =   self.getFloodStatus() 
+                        data['int_dht11temp'] =   self.getDHT11Temperature()
+                        data['int_dht11hum'] =   self.getDHT11Humidity( )
+                elif mcuType == HYDRAULIC:
+                        data['hyd_presIn'] =   self.getPressureIn()
+                        data['hyd_presMid'] =   self.getPressureMiddle( )
+                        data['hyd_presOut'] =   self.getPressureOut()
+                        data['hyd_fluxIn'] =   self.getWaterFluxIn()
+			data['hyd_fluxOut'] =   self.getWaterFluxOut()
+			data['hyd_tempWater'] =   self.getWaterTemperature()
+			data['hyd_waterLev'] =   self.getWaterLevel() 
+			data['hyd_uv'] =   self.getLampUV() 
+                elif mcuType == ELECTRIC:
+			data['ele_cc'] =   self.getCcCurrent() 
+			data['ele_ac1'] =   self.getAcCurrent(1)
+                        data['ele_ac2'] =   self.getAcCurrent(2)
+                        data['ele_ac3'] =   self.getAcCurrent(3)		
+		
+		return data	
