@@ -31,7 +31,7 @@ DHT11_HUMIDITY    =  0x34 # DHT11 ( onewire, D6 )
 PRESSURE_IN       =  0x20 # PRESSURE (analog, A1)
 PRESSURE_OUT      =  0x24 # PRESSURE (analog, A2)
 UV                =  0x30 # n.d.
-FLUX_IN           =  0x40# FLUXMETER ( digital input, D2 )
+FLUX_IN           =  0x40 # FLUXMETER ( digital input, D2 )
 FLUX_OUT          =  0x40 # FLUXMETER ( digital input, D3 )
 WATER_TEMP        =  0x10 # DS18D20 ( onewire, D5 )
 WATER_LEVEL       =  0x50 # DISTANCE ULTRASOUND SENSOR ( software serial, rxD9 txD10 )
@@ -98,6 +98,8 @@ class FdsSensor():
 
 		return value[0]
 
+
+## TODO add try catch raise
 
 
 		
@@ -232,38 +234,42 @@ class FdsSensor():
 	
 
 	def getMcuData(self, mcuType):
-	
 		if mcuType not in (EXTERNAL, INTERNAL, HYDRAULIC, ELECTRIC):
-			raise AttributeError("Wrong MCU type")
+			raise AttributeError("Wrong MCU type ")
 
 		data = {'type': mcuType }
 			
-		if mcuType == EXTERNAL:
-			data['ext_temp1'] =   self.getSolarPanelTemperature1() 
-                        data['ext_temp2'] =   self.getSolarPanelTemperature2() 
-                        data['ext_env'] =   self.getEnvironmentalTemperature( )
-                        data['ext_sun'] =   self.getIrradiation() 
-                        data['ext_wind'] =   self.getWindSpeed() 
-		elif mcuType == INTERNAL:
-                        data['int_tempIn'] =   self.getIncomingTemperature()
-                        data['int_tempOut'] =   self.getOutcomingTemperature() 
-                        data['int_tempIn'] =   self.getInternalTemperature() 
-                        data['int_flood'] =   self.getFloodStatus() 
-                        data['int_dht11temp'] =   self.getDHT11Temperature()
-                        data['int_dht11hum'] =   self.getDHT11Humidity( )
-                elif mcuType == HYDRAULIC:
-                        data['hyd_presIn'] =   self.getPressureIn()
-                        data['hyd_presMid'] =   self.getPressureMiddle( )
-                        data['hyd_presOut'] =   self.getPressureOut()
-                        data['hyd_fluxIn'] =   self.getWaterFluxIn()
-			data['hyd_fluxOut'] =   self.getWaterFluxOut()
-			data['hyd_tempWater'] =   self.getWaterTemperature()
-			data['hyd_waterLev'] =   self.getWaterLevel() 
-			data['hyd_uv'] =   self.getLampUV() 
-                elif mcuType == ELECTRIC:
-			data['ele_cc'] =   self.getCcCurrent() 
-			data['ele_ac1'] =   self.getAcCurrent(1)
-                        data['ele_ac2'] =   self.getAcCurrent(2)
-                        data['ele_ac3'] =   self.getAcCurrent(3)		
+		try:
+			if mcuType == EXTERNAL:
+				data['ext_temp1']     =   self.getSolarPanelTemperature1() 
+	                        data['ext_temp2']     =   self.getSolarPanelTemperature2() 
+	                        data['ext_env']       =   self.getEnvironmentalTemperature( )
+	                        data['ext_pyro']      =   self.getIrradiation() 
+	                        data['ext_wind']      =   self.getWindSpeed() 
+			elif mcuType == INTERNAL:
+	                        data['int_tempIn']    =   self.getIncomingTemperature()
+	                        data['int_tempOut']   =   self.getOutcomingTemperature() 
+	                        data['int_tempInt']   =   self.getInternalTemperature() 
+	                        data['int_flood']     =   self.getFloodStatus() 
+	                        data['int_dht11Temp'] =   self.getDHT11Temperature()
+	                        data['int_dht11Hum']  =   self.getDHT11Humidity( )
+	                elif mcuType == HYDRAULIC:
+	                        data['hyd_presIn']    =   self.getPressureIn()
+	                        data['hyd_presMid']   =   self.getPressureMiddle( )
+	                        data['hyd_presOut']   =   self.getPressureOut()
+	                        data['hyd_fluxIn']    =   self.getWaterFluxIn()
+				data['hyd_fluxOut']   =   self.getWaterFluxOut()
+				data['hyd_waterTemp'] =   self.getWaterTemperature()
+				data['hyd_waterLevel']=   self.getWaterLevel() 
+				data['hyd_uv']        =   self.getLampUV() 
+	                elif mcuType == ELECTRIC:
+				data['ele_cc']        =   self.getCcCurrent() 
+				data['ele_ac1']       =   self.getAcCurrent(1)
+	                        data['ele_ac2']       =   self.getAcCurrent(2)
+	                        data['ele_ac3']       =   self.getAcCurrent(3)		
+		except Exception as e:
+			return None
+		#	raise IOError('Unable to connect to ' + str(mcuType))	
+
 		
 		return data	

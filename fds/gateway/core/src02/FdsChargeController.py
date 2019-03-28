@@ -2,6 +2,7 @@ from pymodbus.exceptions import ModbusIOException
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 
 import random
+import logging
 
 
 
@@ -32,11 +33,11 @@ class FdsChargeController():
 		if (communicationType == MODBUS_ETH):
 			self.communicationType = communicationType
 			self.ipAddress = port
-			if(DEBUG): print("FdsChargeController: ETH enabled ", self.communicationType)
+			logging.debug("FdsChargeController: ETH enabled ")
 		elif (communicationType == MODBUS_RTU):			
 			self.communicationType = communicationType
 			self.serialPort = port
-			if(DEBUG): print("FdsChargeController: RTU enabled ", self.communicationType)
+			logging.debug("FdsChargeController: RTU enabled ")
 		else:				
 			raise ValueError("Unsupported Modbus Communication Type. Choose MODBUS_RTU or MODBUS_ETH.")
 	
@@ -44,9 +45,9 @@ class FdsChargeController():
 
 	def connect(self):		
 		if(self.communicationType == MODBUS_ETH):			
-			if(DEBUG): print("FdsChargeController: connect EHT called")
+			logging.debug("FdsChargeController: connect EHT called")
 		elif (self.communicationType == MODBUS_RTU):
-			if(DEBUG): print("FdsChargeController: connect RTU called")
+			logging.debug("FdsChargeController: connect RTU called")
 
 
 
@@ -89,11 +90,11 @@ class FdsChargeController():
 				data["dipswitches"]  = bin(rr.registers[48])[::-1][:-2].zfill(8)
 				#led_state            = rr.registers
 			except ModbusIOException as e: 
-				print 'Charge Controller: modbusIOException'
-				return None
+				logging.error('Charge Controller: modbusIOException')
+				raise e
 			except Exception as e: 
-				print 'Charge Controller: unpredicted exception'
-				return None
+				logging.error('Charge Controller: unpredicted exception')
+				raise e
 		else:
 			data["battsV"]       = random.uniform(0, 60)
 			data["battsSensedV"] = random.uniform(0, 60)
@@ -143,11 +144,12 @@ class FdsChargeController():
 				data["ch_alarms_3"]   = rr.registers[16]
 				data["ch_alarms_4"]   = rr.registers[17]
 			except ModbusIOException as e: 
-				print 'RelayBoxRead: modbusIOException'
-				return None
+				logging.error('RelayBoxRead: modbusIOException')
+				raise e
 			except Exception as e: 
-				print 'RelayBoxRead: unpredicted exception'
-				return None
+				logging.error('RelayBoxRead: unpredicted exception')
+				raise e
+
 		else:
 			data["adc_vb"]        = random.uniform(0, 60)
 			data["adc_vch_1"]     = random.uniform(0, 60)
@@ -185,11 +187,11 @@ class FdsChargeController():
 				data["relay_7"]   = rr.bits[6]
 				data["relay_8"]   = rr.bits[7]
 			except ModbusIOException as e: 
-				print 'RelayState: modbusIOException'
-				return None
+				logging.error( 'RelayState: modbusIOException')
+				raise e
 			except Exception as e: 
-				print 'RelayState: unpredicted exception'
-				return None
+				logging.error('RelayState: unpredicted exception')
+				raise
 		else: 
 			data["relay_1"]   = 0x1
 			data["relay_2"]   = 0x1
