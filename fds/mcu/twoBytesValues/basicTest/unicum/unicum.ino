@@ -1,131 +1,81 @@
-// Define the ARDUINO station ///////////////////////////////////
+/*
+ * If defined are also enabled: DHT, FLOOD, WATERLEVEL, 3rd temperature
+ */
+//#define MAY_COMPLETE_SETUP 1
 
-//#define IS_EXTERNAL 1
-#define IS_INTERNAL 1
-//#define IS_HYDRAULIC 1
-//#define IS_ELECTRIC 1
-
-//////////////////////////////////////////////////////////////////
-
-
+#define FIRMWARE_VERSION 7
 
 // Included libraries
 #include <Wire.h>
 #include <math.h>
-
-#ifdef IS_EXTERNAL 
 #include <OneWire.h> 
 #include <DallasTemperature.h>
-#define FIRMWARE_VERSION 1
-#endif
-
-#ifdef IS_INTERNAL
-#include <DHT.h>
-#include <OneWire.h> 
-#include <DallasTemperature.h>
-#define FIRMWARE_VERSION 2
-#endif
-
-#ifdef IS_HYDRAULIC
-#include <SoftwareSerial.h>
-#include <OneWire.h> 
-#include <DallasTemperature.h>
-#define FIRMWARE_VERSION 3
-#endif
-
-#ifdef IS_ELECTRIC
 #include <EmonLib.h>
-#define FIRMWARE_VERSION 4
-#endif
 
+#ifdef MAY_COMPLETE_SETUP
+  #include <SoftwareSerial.h>
+  #include <DHT.h>
+#endif
 
 /*
  * Contants
  */
-#ifdef IS_ELECTRIC
-	#define EMON_CALIB        111.0
-	#define EMON_IRMS_CALIB   1480
-	#define SCALE_CC          1.0
-	#define SCALE_AC1         1.0
-	#define SCALE_AC2         1.0
-	#define SCALE_AC3         1.0
-#endif
-
+#define EMON_CALIB        111.0
+#define EMON_IRMS_CALIB   1480
+#define SCALE_CC          1.0
+#define SCALE_AC1         1.0
+#define SCALE_AC2         1.0
+#define SCALE_AC3         1.0
 
 /*
  * Define slave I2C
  */
-#ifdef IS_EXTERNAL 
-	#define I2C_ADDR      0x21 
-#elif IS_INTERNAL
-	#define I2C_ADDR      0x22 
-#elif IS_HYDRAULIC
-	#define I2C_ADDR      0x23 
-#elif IS_ELECTRIC
-	#define I2C_ADDR      0x24 
-#endif
-
+#define I2C_ADDR      0x27 
 
 /*
  * I2C registers descriptions
  */
-
-#define EVENT_GET_FIRMWARE_VERSION          0x80
+#define EVENT_GET_FIRMWARE_VERSION          0x90
  
 #define EVENT_GET_TEMP_PANEL_1     0x10
 #define EVENT_GET_TEMP_PANEL_2     0x14
 #define EVENT_GET_TEMP_ENV         0x18
-#define EVENT_GET_PYRO             0x20
-#define EVENT_GET_WIND             0x30
 
-#define EVENT_GET_AIR_IN           0x10
-#define EVENT_GET_AIR_OUT          0x14
-#define EVENT_GET_AIR_INSIDE       0x18
-#define EVENT_GET_FLOODING_STATUS  0x20
-#define EVENT_GET_DHT11_AIR        0x30
-#define EVENT_GET_DHT11_HUMIDITY   0x34
-
-#define EVENT_GET_WATER_TEMP       0x10
 #define EVENT_GET_PRESSURE_IN      0x20
 #define EVENT_GET_PRESSURE_OUT     0x24
 #define EVENT_GET_PRESSURE_MIDDLE  0x28
-#define EVENT_GET_UV               0x30
-#define EVENT_GET_FLUX_IN          0x40
-#define EVENT_GET_FLUX_OUT         0x44
-#define EVENT_GET_WATER_LEVEL      0x50
 
-#define EVENT_GET_CC_CURRENT       0x10
-#define EVENT_GET_AC1_CURRENT      0x20
-#define EVENT_GET_AC2_CURRENT      0x24
-#define EVENT_GET_AC3_CURRENT      0x28
+#define EVENT_GET_FLUX_IN          0x30
+#define EVENT_GET_FLUX_OUT         0x34
+
+#define EVENT_GET_CC_CURRENT       0x40
+#define EVENT_GET_AC1_CURRENT      0x44
+#define EVENT_GET_AC2_CURRENT      0x48
+
+#define EVENT_GET_DHT11_AIR        0x50
+#define EVENT_GET_DHT11_HUMIDITY   0x54
+
+#define EVENT_GET_FLOODING_STATUS  0x60
+
+#define EVENT_GET_WATER_LEVEL      0x70
 
 /*
  * Pin declaration
  */
-#ifdef IS_EXTERNAL
-	#define PYROMETER_PIN        A0
-	#define TEMP_ONE_WIRE_BUS    5 
-	#define INTERRUPT_0_PIN      2 
-#elif IS_INTERNAL
-	#define ONE_WIRE_BUS         5 
-	#define DHT11_BUS            6 
-	#define FLOOD_PIN            7 
-#elif IS_HYDRAULIC
-	#define PRESSURE_IN_PIN      A0
-	#define PRESSURE_MIDDLE_PIN  A2
-	#define PRESSURE_OUT_PIN     A1
-	#define UV_PIN               A3
-	#define INTERRUPT_0_PIN      2
-	#define INTERRUPT_1_PIN      3 
-	#define TEMP_ONE_WIRE_BUS    5 
-	#define SERIAL_RX_PIN        9
-	#define SERIAL_TX_PIN        10
-#elif IS_ELECTRIC
-	#define CC_OUTPUT_PIN         A0
-	#define AC_OUTPUT_1_PIN       A1
-	#define AC_OUTPUT_2_PIN       A2
-	#define AC_OUTPUT_3_PIN       A3
-#endif
+
+  #define CC_OUTPUT_PIN         A0
+  #define PRESSURE_IN_PIN       A1
+  #define PRESSURE_MIDDLE_PIN   A2
+  #define PRESSURE_OUT_PIN      A3
+  #define AC_OUTPUT_1_PIN       A6
+  #define AC_OUTPUT_2_PIN       A7
+  #define INTERRUPT_0_PIN       2
+  #define INTERRUPT_1_PIN       3 
+	#define TEMP_ONE_WIRE_BUS     5 
+	#define DHT11_ONEWIRE_BUS     6 
+	#define FLOOD_PIN             7 
+	#define SERIAL_RX_PIN         9
+	#define SERIAL_TX_PIN         10
 
 /*
  * Output variables
@@ -134,30 +84,24 @@ uint8_t VALUE_FIRMWARE_VERSION = (uint8_t) FIRMWARE_VERSION;
  
 float VALUE_TEMP_PANEL_1       = 0;
 float VALUE_TEMP_PANEL_2       = 0;
-float VALUE_TEMP_ENV           = 0;
-int VALUE_PYRO                 = 0;
-int VALUE_WIND                 = 0;
-
-float VALUE_AIR_IN             = 0;
-float VALUE_AIR_OUT            = 0;
-float VALUE_AIR_INSIDE         = 0;
-uint8_t VALUE_FLOODING_STATUS  = 0;
-float VALUE_DHT11_AIR          = 0;
-float VALUE_DHT11_HUMIDITY     = 0;
 
 float VALUE_PRESSURE_IN        = 0;
 float VALUE_PRESSURE_OUT       = 0;
 float VALUE_PRESSURE_MIDDLE    = 0;
-uint8_t VALUE_UV               = 0;
 int   VALUE_FLUX_IN            = 0;
 int   VALUE_FLUX_OUT           = 0;
-float VALUE_WATER_TEMP         = 0;
-int   VALUE_WATER_LEVEL        = 0;
 
 float VALUE_CC                 = 0;
 float VALUE_AC1                = 0;
 float VALUE_AC2                = 0;
-float VALUE_AC3                = 0;
+
+#ifdef MAY_COMPLETE_SETUP
+  float VALUE_TEMP_ENV           = 0;
+  float VALUE_DHT11_AIR          = 0;
+  float VALUE_DHT11_HUMIDITY     = 0;
+  int   VALUE_WATER_LEVEL        = 0;
+  uint8_t VALUE_FLOODING_STATUS  = 0;
+#endif
 
 /*
  * Common variables
@@ -169,60 +113,40 @@ uint8_t EVENT = 0;
  * Local variables
  */
 volatile int int0count = 0, int1count = 0;
- 
-#ifdef IS_EXTERNAL
-	OneWire  ds(TEMP_ONE_WIRE_BUS);
-	DallasTemperature sensors(&ds);
-	float tempPanel1, tempPanel2, tempEnv;
-	int wind, pyro;
- 
-#elif IS_INTERNAL
-	OneWire  ds(ONE_WIRE_BUS);
-	DallasTemperature sensors(&ds);
-	float airIn, airOut, airInside, dht11air, dht11humidity;
-	int isFlooded;
-	DHT dht(DHT11_BUS, DHT11);
-  
-#elif IS_HYDRAULIC
-	OneWire  ds(TEMP_ONE_WIRE_BUS);
-	DallasTemperature sensors(&ds);
-	float waterTemp;
-	int pressureIn, pressureOut, pressureMiddle, uv, fluxIn, fluxOut, waterLevel;
-	SoftwareSerial DYPSensor(SERIAL_RX_PIN, SERIAL_TX_PIN); // RX, TX
-	const int MAX_TRY_SERIAL = 50;
-	const int CYCLES = 10;
-  
-#elif IS_ELECTRIC
-	EnergyMonitor acOutput1; 
-	EnergyMonitor acOutput2;
-	EnergyMonitor acOutput3; 
+
+OneWire  ds(TEMP_ONE_WIRE_BUS);
+DallasTemperature sensors(&ds);
+float tempPanel1, tempPanel2, tempEnv;
+int pressureIn, pressureOut, pressureMiddle, fluxIn, fluxOut, waterLevel;
+EnergyMonitor acOutput1; 
+EnergyMonitor acOutput2;
+
+#ifdef MAY_COMPLETE_SETUP
+  int isFlooded;
+  SoftwareSerial DYPSensor(SERIAL_RX_PIN, SERIAL_TX_PIN); // RX, TX
+  const int MAX_TRY_SERIAL = 50;
+  const int CYCLES = 10;
+  float dht11air, dht11humidity;
+  DHT dht(DHT11_ONEWIRE_BUS, DHT11);
 #endif
-
-
 /*
  * Setup
  */
 void setup() {
 	Serial.begin(115200);
+	sensors.begin();
+	attachInterrupt(0, interrupt0Handler,  RISING);
+	attachInterrupt(1, interrupt1Handler,  RISING);
+	pinMode(INTERRUPT_0_PIN,  INPUT);
+	pinMode(INTERRUPT_1_PIN,  INPUT);
+	acOutput1.current(AC_OUTPUT_1_PIN, EMON_CALIB);             
+	acOutput2.current(AC_OUTPUT_2_PIN, EMON_CALIB);  
 
-	#ifdef IS_EXTERNAL
-		attachInterrupt(0, interrupt0Handler, RISING);
-		pinMode(INTERRUPT_0_PIN, INPUT);
-		sensors.begin();
-	#elif IS_INTERNAL
-		sensors.begin();
-		dht.begin();
-	#elif IS_HYDRAULIC
-		attachInterrupt(0, interrupt0Handler,  RISING);
-		attachInterrupt(1, interrupt1Handler,  RISING);
-		pinMode(INTERRUPT_0_PIN,  INPUT);
-		pinMode(INTERRUPT_1_PIN,  INPUT);
-		DYPSensor.begin(9600);
-	#elif IS_ELECTRIC
-		acOutput1.current(AC_OUTPUT_1_PIN, EMON_CALIB);             
-		acOutput2.current(AC_OUTPUT_2_PIN, EMON_CALIB);  
-		acOutput3.current(AC_OUTPUT_3_PIN, EMON_CALIB);  
-	#endif
+#ifdef MAY_COMPLETE_SETUP 
+  dht.begin();
+  DYPSensor.begin(9600); 
+  pinMode(7, INPUT);
+#endif
   
 	// Output pin muxing
 	pinMode(13, OUTPUT);
@@ -236,87 +160,55 @@ void setup() {
 
 
 void loop() {
+  int0count  = 0;
+  int1count  = 0;
+	sensors.requestTemperatures();
 
-	#ifdef IS_EXTERNAL  // Interrupts reset
-		int0count = 0;
-		sensors.requestTemperatures();
+	tempPanel1    = sensors.getTempCByIndex(0);
+	tempPanel2    = sensors.getTempCByIndex(1);
+  
+  pressureIn     = analogRead(PRESSURE_IN_PIN);
+  pressureOut    = analogRead(PRESSURE_OUT_PIN);
+  pressureMiddle = analogRead(PRESSURE_MIDDLE_PIN);  
 
-		//Serial.println(sensors.getTempCByIndex(0));
-		tempPanel1    = sensors.getTempCByIndex(0);
-		tempPanel2    = sensors.getTempCByIndex(1);
-		tempEnv       = sensors.getTempCByIndex(2);
+	// counting interrupts
+	sei();
+	delay(500);
+	cli();
 
-		// counting interrupts
-		sei();
-		delay(500);
-		cli();
-		  
-		wind = int0count;
-		pyro = analogRead(PYROMETER_PIN);
+	fluxIn  = int0count;
+	fluxOut = int1count;
+  
+  int Icc = analogRead(CC_OUTPUT_PIN);
+  double Irms1 = acOutput1.calcIrms(1480);  // Calculate Irms only
+  double Irms2 = acOutput2.calcIrms(1480);  // Calculate Irms only
 
-		VALUE_TEMP_PANEL_1 = (float)  tempPanel1;
-		VALUE_TEMP_PANEL_2 = (float)  tempPanel2;
-		VALUE_TEMP_ENV     = (float)  tempEnv;
-		VALUE_WIND         = (int)  wind; 
-		VALUE_PYRO         = (int)  pyro; // guadagno LM358?
-   
-	#elif IS_INTERNAL
-		airIn         = sensors.getTempCByIndex(0);
-		airOut        = sensors.getTempCByIndex(1);
-		airInside     = sensors.getTempCByIndex(2);
-		isFlooded     = digitalRead(FLOOD_PIN);  
-		dht11air      = dht.readTemperature();
-		dht11humidity = dht.readHumidity();
-
-		VALUE_AIR_IN          = airIn;
-		VALUE_AIR_OUT         = airOut;
-		VALUE_AIR_INSIDE      = airInside;
-		VALUE_FLOODING_STATUS = (uint8_t) isFlooded;
-		VALUE_DHT11_AIR       = dht11air;
-		VALUE_DHT11_HUMIDITY  = dht11humidity;
-    
-	#elif IS_HYDRAULIC  
-		int0count  = 0;
-		int1count  = 0;
-
-		sensors.requestTemperatures();
-
-		uv = 0;
-		pressureIn  = analogRead(PRESSURE_IN_PIN);
-		pressureOut = analogRead(PRESSURE_OUT_PIN);
-		pressureMiddle = analogRead(PRESSURE_MIDDLE_PIN);  
-		waterLevel = GetDistance();
-		waterTemp = sensors.getTempCByIndex(0);
-
-		// counting interrupts
-		sei();
-		delay(500);
-		cli();
-
-		fluxIn  = int0count;
-		fluxOut = int1count;
-
-		VALUE_FLUX_IN      = (int) fluxIn;
-		VALUE_FLUX_OUT     = (int) fluxOut;
-		VALUE_UV           = (uint8_t) 0;
-		VALUE_PRESSURE_IN  = (float) pressureIn;
-		VALUE_PRESSURE_OUT = (float) pressureOut;
-		VALUE_WATER_TEMP   = (float) waterTemp;
-		VALUE_WATER_LEVEL  = (int) waterLevel;
-		VALUE_PRESSURE_MIDDLE = (float) pressureMiddle;
-    
-	#elif IS_ELECTRIC
-		int Icc = analogRead(CC_OUTPUT_PIN);
-		double Irms1 = acOutput1.calcIrms(1480);  // Calculate Irms only
-		double Irms2 = acOutput2.calcIrms(1480);  // Calculate Irms only
-		double Irms3 = acOutput3.calcIrms(1480);  // Calculate Irms only
-
-		VALUE_CC  = (float)(Icc   * SCALE_CC );
-		VALUE_AC1 = (float)(Irms1 * SCALE_AC1);
-		VALUE_AC2 = (float)(Irms2 * SCALE_AC2);
-		VALUE_AC3 = (float)(Irms3 * SCALE_AC3);
-	#endif
-
+  #ifdef MAY_COMPLETE_SETUP
+    isFlooded     = digitalRead(FLOOD_PIN);  
+    dht11air      = dht.readTemperature();
+    dht11humidity = dht.readHumidity();
+    waterLevel    = GetDistance();
+    tempEnv       = sensors.getTempCByIndex(2);
+  #endif
+  
+  VALUE_TEMP_PANEL_1 = (float)  tempPanel1;
+  VALUE_TEMP_PANEL_2 = (float)  tempPanel2;
+	VALUE_FLUX_IN      = (int) fluxIn;
+	VALUE_FLUX_OUT     = (int) fluxOut;
+	VALUE_PRESSURE_IN  = (float) pressureIn;
+	VALUE_PRESSURE_OUT = (float) pressureOut;
+  VALUE_PRESSURE_MIDDLE = (float) pressureMiddle;
+  VALUE_CC  = (float)(Icc   * SCALE_CC );
+  VALUE_AC1 = (float)(Irms1 * SCALE_AC1);
+  VALUE_AC2 = (float)(Irms2 * SCALE_AC2);
+  
+  #ifdef MAY_COMPLETE_SETUP
+    VALUE_FLOODING_STATUS = (uint8_t) isFlooded;
+    VALUE_DHT11_AIR       = dht11air;
+    VALUE_DHT11_HUMIDITY  = dht11humidity;
+    VALUE_WATER_LEVEL  = (int) waterLevel;
+    VALUE_TEMP_ENV     = (float)  tempEnv;
+  #endif
 
 	digitalWrite(13, HIGH);
 	delay(10);
@@ -348,7 +240,6 @@ void requestEvent() {
       Wire.write( VALUE_FIRMWARE_VERSION );
       break;
 
-    #ifdef IS_EXTERNAL
     case EVENT_GET_TEMP_PANEL_1 + 0: 
       b = float2Bytes(VALUE_TEMP_PANEL_1, 0);
       Wire.write( b );
@@ -382,133 +273,7 @@ void requestEvent() {
       b = float2Bytes(VALUE_TEMP_PANEL_2, 3);
       Wire.write( b );
       break;
-      
-    case EVENT_GET_TEMP_ENV + 0: 
-      b = float2Bytes(VALUE_TEMP_ENV, 0);
-      Wire.write( b );
-      break;
-    case EVENT_GET_TEMP_ENV + 1:  
-      b = float2Bytes(VALUE_TEMP_ENV, 1);
-      Wire.write( b );
-      break;
-    case EVENT_GET_TEMP_ENV + 2:  
-      b = float2Bytes(VALUE_TEMP_ENV, 2);
-      Wire.write( b );
-      break;
-    case EVENT_GET_TEMP_ENV + 3:  
-      b = float2Bytes(VALUE_TEMP_ENV, 3);
-      Wire.write( b );
-      break;
-      
-    case EVENT_GET_PYRO + 0: 
-      b = int2Bytes(VALUE_PYRO, 0);
-      Wire.write( b );
-      break;      
-    case EVENT_GET_PYRO + 1: 
-      b = int2Bytes(VALUE_PYRO, 1);
-      Wire.write( b );
-      break;
-      
-    case EVENT_GET_WIND + 0: 
-      b = int2Bytes(VALUE_WIND, 0);
-      Wire.write( b );
-      break;
-    case EVENT_GET_WIND + 1: 
-      b = int2Bytes(VALUE_WIND, 1);
-      Wire.write( b );
-      break;
 
-    #elif IS_INTERNAL
-    case EVENT_GET_AIR_IN + 0: 
-      b = float2Bytes(VALUE_AIR_IN, 0);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AIR_IN + 1: 
-      b = float2Bytes(VALUE_AIR_IN, 1);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AIR_IN + 2: 
-      b = float2Bytes(VALUE_AIR_IN, 2);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AIR_IN + 3: 
-      b = float2Bytes(VALUE_AIR_IN, 3);
-      Wire.write( b );
-      break;
-
-    case EVENT_GET_AIR_OUT + 0: 
-      b = float2Bytes(VALUE_AIR_OUT, 0);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AIR_OUT + 1: 
-      b = float2Bytes(VALUE_AIR_OUT, 1);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AIR_OUT + 2: 
-      b = float2Bytes(VALUE_AIR_OUT, 2);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AIR_OUT + 3: 
-      b = float2Bytes(VALUE_AIR_OUT, 3);
-      Wire.write( b );
-      break;
-
-    case EVENT_GET_AIR_INSIDE + 0: 
-      b = float2Bytes(VALUE_AIR_INSIDE, 0);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AIR_INSIDE + 1: 
-      b = float2Bytes(VALUE_AIR_INSIDE, 1);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AIR_INSIDE + 2: 
-      b = float2Bytes(VALUE_AIR_INSIDE, 2);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AIR_INSIDE + 3: 
-      b = float2Bytes(VALUE_AIR_INSIDE, 3);
-      Wire.write( b );
-      break;
-
-    case EVENT_GET_FLOODING_STATUS: 
-      Wire.write(VALUE_FLOODING_STATUS);
-      break;
-
-    case EVENT_GET_DHT11_AIR + 0: 
-      b = float2Bytes(VALUE_DHT11_AIR, 0);
-      Wire.write( b );
-      break;
-    case EVENT_GET_DHT11_AIR + 1: 
-      b = float2Bytes(VALUE_DHT11_AIR, 1);
-      Wire.write( b );
-      break;
-    case EVENT_GET_DHT11_AIR + 2: 
-      b = float2Bytes(VALUE_DHT11_AIR, 2);
-      Wire.write( b );
-      break;
-    case EVENT_GET_DHT11_AIR + 3: 
-      b = float2Bytes(VALUE_DHT11_AIR, 3);
-      Wire.write( b );
-      break;
-
-    case EVENT_GET_DHT11_HUMIDITY + 0: 
-      b = float2Bytes(VALUE_DHT11_HUMIDITY, 0);
-      Wire.write( b );
-      break;
-    case EVENT_GET_DHT11_HUMIDITY + 1: 
-      b = float2Bytes(VALUE_DHT11_HUMIDITY, 1);
-      Wire.write( b );
-      break;
-    case EVENT_GET_DHT11_HUMIDITY + 2: 
-      b = float2Bytes(VALUE_DHT11_HUMIDITY, 2);
-      Wire.write( b );
-      break;
-    case EVENT_GET_DHT11_HUMIDITY + 3: 
-      b = float2Bytes(VALUE_DHT11_HUMIDITY, 3);
-      Wire.write( b );
-      break;
-
-    #elif IS_HYDRAULIC
     case EVENT_GET_PRESSURE_IN + 0: 
       b = float2Bytes(VALUE_PRESSURE_IN, 0);
       Wire.write( b );
@@ -560,10 +325,6 @@ void requestEvent() {
       Wire.write( b );
       break;
 
-    case EVENT_GET_UV: 
-      Wire.write(VALUE_UV);
-      break;
-     
     case EVENT_GET_FLUX_IN + 0: 
       b = int2Bytes(VALUE_FLUX_IN, 0);
       Wire.write( b );
@@ -582,33 +343,7 @@ void requestEvent() {
       Wire.write( b );
       break;
 
-    case EVENT_GET_WATER_TEMP + 0: 
-      b = float2Bytes(VALUE_WATER_TEMP, 0);
-      Wire.write( b );
-      break;
-    case EVENT_GET_WATER_TEMP + 1: 
-      b = float2Bytes(VALUE_WATER_TEMP, 1);
-      Wire.write( b );
-      break;
-    case EVENT_GET_WATER_TEMP + 2: 
-      b = float2Bytes(VALUE_WATER_TEMP, 2);
-      Wire.write( b );
-      break;
-    case EVENT_GET_WATER_TEMP + 3: 
-      b = float2Bytes(VALUE_WATER_TEMP, 3);
-      Wire.write( b );
-      break;
 
-    case EVENT_GET_WATER_LEVEL + 0: 
-      b = int2Bytes(VALUE_WATER_LEVEL, 0);
-      Wire.write( b );
-      break;
-    case EVENT_GET_WATER_LEVEL + 1: 
-      b = int2Bytes(VALUE_WATER_LEVEL, 1);
-      Wire.write( b );
-      break;
-
-  #elif IS_ELECTRIC
     case EVENT_GET_CC_CURRENT + 0: 
       b = float2Bytes(VALUE_CC, 0);
       Wire.write( b );
@@ -659,24 +394,74 @@ void requestEvent() {
       b = float2Bytes(VALUE_AC2, 3);
       Wire.write( b );
       break;
+  
 
-    case EVENT_GET_AC3_CURRENT + 0: 
-      b = float2Bytes(VALUE_AC3, 0);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AC3_CURRENT + 1: 
-      b = float2Bytes(VALUE_AC3, 1);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AC3_CURRENT + 2: 
-      b = float2Bytes(VALUE_AC3, 2);
-      Wire.write( b );
-      break;
-    case EVENT_GET_AC3_CURRENT + 3: 
-      b = float2Bytes(VALUE_AC3, 3);
-      Wire.write( b );
-      break;
-    #endif  
+    #ifdef MAY_COMPLETE_SETUP
+      case EVENT_GET_WATER_LEVEL + 0: 
+        b = int2Bytes(VALUE_WATER_LEVEL, 0);
+        Wire.write( b );
+        break;
+      case EVENT_GET_WATER_LEVEL + 1: 
+        b = int2Bytes(VALUE_WATER_LEVEL, 1);
+        Wire.write( b );
+        break;
+
+      case EVENT_GET_DHT11_AIR + 0: 
+        b = float2Bytes(VALUE_DHT11_AIR, 0);
+        Wire.write( b );
+        break;
+      case EVENT_GET_DHT11_AIR + 1: 
+        b = float2Bytes(VALUE_DHT11_AIR, 1);
+        Wire.write( b );
+        break;
+      case EVENT_GET_DHT11_AIR + 2: 
+        b = float2Bytes(VALUE_DHT11_AIR, 2);
+        Wire.write( b );
+        break;
+      case EVENT_GET_DHT11_AIR + 3: 
+        b = float2Bytes(VALUE_DHT11_AIR, 3);
+        Wire.write( b );
+        break;
+  
+      case EVENT_GET_DHT11_HUMIDITY + 0: 
+        b = float2Bytes(VALUE_DHT11_HUMIDITY, 0);
+        Wire.write( b );
+        break;
+      case EVENT_GET_DHT11_HUMIDITY + 1: 
+        b = float2Bytes(VALUE_DHT11_HUMIDITY, 1);
+        Wire.write( b );
+        break;
+      case EVENT_GET_DHT11_HUMIDITY + 2: 
+        b = float2Bytes(VALUE_DHT11_HUMIDITY, 2);
+        Wire.write( b );
+        break;
+      case EVENT_GET_DHT11_HUMIDITY + 3: 
+        b = float2Bytes(VALUE_DHT11_HUMIDITY, 3);
+        Wire.write( b );
+        break;
+        
+      case EVENT_GET_FLOODING_STATUS: 
+        Wire.write(VALUE_FLOODING_STATUS);
+        break;
+
+      case EVENT_GET_TEMP_ENV + 0: 
+        b = float2Bytes(VALUE_TEMP_ENV, 0);
+        Wire.write( b );
+        break;
+      case EVENT_GET_TEMP_ENV + 1:  
+        b = float2Bytes(VALUE_TEMP_ENV, 1);
+        Wire.write( b );
+        break;
+      case EVENT_GET_TEMP_ENV + 2:  
+        b = float2Bytes(VALUE_TEMP_ENV, 2);
+        Wire.write( b );
+        break;
+      case EVENT_GET_TEMP_ENV + 3:  
+        b = float2Bytes(VALUE_TEMP_ENV, 3);
+        Wire.write( b );
+        break;
+        
+    #endif 
     
     default:
       Wire.write(0xFF);
@@ -704,13 +489,12 @@ void interrupt0Handler(){
 }
 
 
-#ifdef IS_HYDRAULIC
 void interrupt1Handler(){
 	int1count++;
 }
-#endif
 
-#ifndef IS_ELECTRIC
+
+
 void discoverOneWireDevices(void) {
 	byte i;
 	byte present = 0;
@@ -741,9 +525,9 @@ void discoverOneWireDevices(void) {
 	ds.reset_search();
 	return;
 	}
-#endif
 
-#ifdef IS_HYDRAULIC
+
+#ifdef MAY_COMPLETE_SETUP
 int GetDistance() {
 	int mean   = 0;
 	int valids = 0;
