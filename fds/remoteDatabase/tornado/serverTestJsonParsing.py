@@ -32,8 +32,10 @@ class McuHandler(tornado.web.RequestHandler):
         json_data = self.request.body
         data = json.loads(json_data)
 
+        print "MCU Data received: " + str( len(data) ) + " bytes."
+
         #print the readed json PRETTY
-        print json.dumps(data, indent=2, sort_keys=True)
+        #print json.dumps(data, indent=2, sort_keys=True)
 
 
 
@@ -45,8 +47,11 @@ class ChargeControllerHandler(tornado.web.RequestHandler):
         json_data = self.request.body
         data = json.loads(json_data)
 
+        print "CC Data received: " + str( len(data) ) + " bytes."
+
+
         #print the readed json PRETTY
-        print json.dumps(data, indent=2, sort_keys=True)
+        #print json.dumps(data, indent=2, sort_keys=True)
 
 
 
@@ -58,8 +63,11 @@ class RelayBoxHandler(tornado.web.RequestHandler):
         json_data = self.request.body
         data = json.loads(json_data)
 
+        print "RB Data received: " + str( len(data) ) + " bytes."
+
+
         #print the readed json PRETTY
-        print json.dumps(data, indent=2, sort_keys=True)
+        # print json.dumps(data, indent=2, sort_keys=True)
 
 
 
@@ -71,8 +79,11 @@ class RelayStateHandler(tornado.web.RequestHandler):
         json_data = self.request.body
         data = json.loads(json_data)
 
+        print "RS Data received: " + str( len(data) ) + " bytes."
+
+
         #print the readed json PRETTY
-        print json.dumps(data, indent=2, sort_keys=True)
+        #print json.dumps(data, indent=2, sort_keys=True)
 
 
 
