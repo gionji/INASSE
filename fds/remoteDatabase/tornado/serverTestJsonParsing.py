@@ -21,12 +21,70 @@ class MainHandler(tornado.web.RequestHandler):
 
         #print the readed json PRETTY
         print json.dumps(data, indent=2, sort_keys=True)
-        #self.write("OK")
+
+
+
+class McuHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write("Microcontrollers Handler")
+
+    def post(self):
+        json_data = self.request.body
+        data = json.loads(json_data)
+
+        #print the readed json PRETTY
+        print json.dumps(data, indent=2, sort_keys=True)
+
+
+
+class ChargeControllerHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write("ChargeController Handler")
+
+    def post(self):
+        json_data = self.request.body
+        data = json.loads(json_data)
+
+        #print the readed json PRETTY
+        print json.dumps(data, indent=2, sort_keys=True)
+
+
+
+class RelayBoxHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write("RelayBoxHandler Handler")
+
+    def post(self):
+        json_data = self.request.body
+        data = json.loads(json_data)
+
+        #print the readed json PRETTY
+        print json.dumps(data, indent=2, sort_keys=True)
+
+
+
+class RelayStateHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write("RelayBoxHandler Handler")
+
+    def post(self):
+        json_data = self.request.body
+        data = json.loads(json_data)
+
+        #print the readed json PRETTY
+        print json.dumps(data, indent=2, sort_keys=True)
+
 
 
 def main():
     tornado.options.parse_command_line()
-    application = tornado.web.Application([(r"/sendData", MainHandler)])
+    application = tornado.web.Application([
+                                           (r"/sync/cc", ChargeControllerHandler),
+                                           (r"/sync/rb", RelayBoxHandler),
+                                           (r"/sync/rs", RelayStateHandler),
+                                           (r"/sync/mcu", McuHandler),
+                                           (r"/", MainHandler)
+                                           ])
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.current().start()
