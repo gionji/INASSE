@@ -11,11 +11,11 @@ data_json = {"boardId" : "BOARD_001",
 headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 payload = data=json.dumps(data_json)
 
-r = requests.post("http://"+ SERVER_IP +":8888/cc", data=payload, headers=headers)
+r = requests.post("http://"+ SERVER_IP +":8888/sync/cc", data=payload, headers=headers)
 print("Response cc: ", r)
-r = requests.post("http://"+ SERVER_IP +":8888/rb", data=payload, headers=headers)
+r = requests.post("http://"+ SERVER_IP +":8888/sync/rb", data=payload, headers=headers)
 print("Response rb: ", r)
-r = requests.post("http://"+ SERVER_IP +":8888/rs", data=payload, headers=headers)
+r = requests.post("http://"+ SERVER_IP +":8888/sync/rs", data=payload, headers=headers)
 print("Response rs: ", r)
-r = requests.post("http://"+ SERVER_IP +":8888/mcu", data=payload, headers=headers)
+r = requests.post("http://"+ SERVER_IP +":8888/sync/mcu", data=payload, headers=headers)
 print("Response mcu: ", r)
