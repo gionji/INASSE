@@ -3,6 +3,7 @@ import sqlite3
 import time
 import sys
 import requests
+import json
 
 sys.dont_write_bytecode = True
 
@@ -12,6 +13,14 @@ import FdsDbConstants      as FdsDB
 
 # lo uso per test sul cartone, visto che ora gli schetch sono quelli vecchi a 4 MCU
 import FdsSensorUnico4mcu  as FdsSS4Mcu
+
+
+
+READ_CYCLES_BEFORE_SYNC = 5
+DELAY_BETWEEN_READINGS  = 2.0
+
+IS_MODBUS_IN_DEBUG_MODE = True
+IS_MCU_IN_DEBUG_MODE = True
 
 def createDbTables( dbConnection ):
         # get te cursor
@@ -75,7 +84,7 @@ def exportLocalDbToJson(dbName, outputPath):
 
 	# for each of the bables , select all the records from the table
 	for table_name in tables:
-		table_name = table_name[0]
+		# table_name = table_name[0]
 		# print table_name['name']
 
 		conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
@@ -87,13 +96,13 @@ def exportLocalDbToJson(dbName, outputPath):
 
 		results = cur1.fetchall()
 
-        data_json = format(results).replace(" u'", "'").replace("'", "\"")
+        	data_json = format(results).replace(" u'", "'").replace("'", "\"")
 
-        SERVER_IP = '25.46.34.214'
-        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        payload = json.dumps(data_json)
-        r = requests.post("http://"+ SERVER_IP +":8888/sync/cc", data=payload, headers=headers)
-        print("Response cc: ", r)
+        	SERVER_IP = '25.46.34.214'
+        	headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+        	payload = json.dumps(data_json)
+        	r = requests.post("http://"+ SERVER_IP +":8888/sync/cc", data=payload, headers=headers)
+        	print("Response cc: ", r)
 
 		### generate and save JSON files with the table name for each of the database tables
 		# with open(outputPath + '/' + table_name['name']+'.json', 'a') as the_file:
@@ -120,16 +129,13 @@ def main():
     createDbTables( dbConnection )
 
 
-    READ_CYCLES_BEFORE_SYNC = 5
-    DELAY_BETWEEN_READINGS  = 2.0
-
     ## reads N times before to sync the local db with the remote one
     for i in range(0, READ_CYCLES_BEFORE_SYNC):
     	try:
             # ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
             # Se passo None va in modalita # DEBUG:
             # TODO: aggiustare questa cosa
-            chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, "192.168.0.1", isDebug = True )
+            chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, "192.168.0.1", isDebug = IS_MODBUS_IN_DEBUG_MODE )
 
             # Fa solo finta adesso, non serve a una sega
             chargeController.connect()
@@ -152,8 +158,8 @@ def main():
     	    arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
 
             # get Data from MCUs
-    	    mcuData  = arduino.getMcuData(isDebug = True)
-	    print "MCU_DATA: " + str(mcuData)
+    	    mcuData  = arduino.getMcuData(isDebug = IS_MCU_IN_DEBUG_MODE)
+	   
 
             # dati dagli arduini effettivamente connessi
             mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
