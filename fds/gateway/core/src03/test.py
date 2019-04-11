@@ -15,12 +15,16 @@ import FdsDbConstants      as FdsDB
 import FdsSensorUnico4mcu  as FdsSS4Mcu
 
 
+######################################################33
+SERVER_IP = '25.46.34.214' # macchina virtuale gionji su asus
 
 READ_CYCLES_BEFORE_SYNC = 5
 DELAY_BETWEEN_READINGS  = 2.0
 
 IS_MODBUS_IN_DEBUG_MODE = True
 IS_MCU_IN_DEBUG_MODE = True
+#######################################################
+
 
 def createDbTables( dbConnection ):
         # get te cursor
@@ -159,7 +163,7 @@ def main():
 
             # get Data from MCUs
     	    mcuData  = arduino.getMcuData(isDebug = IS_MCU_IN_DEBUG_MODE)
-	   
+
 
             # dati dagli arduini effettivamente connessi
             mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
