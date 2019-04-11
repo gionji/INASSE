@@ -49,17 +49,10 @@ ARDUINO_INT_SIZE    = 2
 ARDUINO_DOUBLE_SIZE = 8
 
 
-SENSORS_BUS = UDOO_NEO_I2C_BUS
-
-
 class FdsSensor():
 	bus = None
 
-	def __init__(self):
-		#print("Called FdsSensor default constructor")
-		self.bus = smbus2.SMBus(SENSORS_BUS)
-
-	def __init__(self, busId):
+	def __init__(self, busId = UDOO_NEO_I2C_BUS):
 		#print("Called FdsSensor default constructor")
 		self.bus = smbus2.SMBus(busId)
 
@@ -193,7 +186,21 @@ class FdsSensor():
 
 
 
-	def getMcuData(self):
+	def getMcuData(self, isDebug=False):
+
+		if isDebug:
+			data[ TEMP_1_LABEL ]          =   27.1
+            data[ TEMP_2_LABEL ]          =   27.1
+            data[ PRESSURE_IN_LABEL ]     =   200.1
+            data[ PRESSURE_IN_LABEL ]     =   200.2
+            data[ PRESSURE_IN_LABEL ]     =   200.3
+            data[ FLUX_IN_LABEL ]         =   301
+			data[ FLUX_OUT_LABEL ]        =   302
+			data[ CC_LABEL ]              =   400.1
+			data[ AC1_LABEL ]             =   500.1
+            data[ AC1_LABEL ]             =   500.2
+			return data
+
 		try:
 			data[ TEMP_1_LABEL ]          =   self.getTemperature1()
             data[ TEMP_2_LABEL ]          =   self.getTemperature2()

@@ -6,8 +6,6 @@ import logging
 
 
 
-DEBUG = True
-
 MODBUS_RTU = 0x01
 MODBUS_ETH = 0x02
 
@@ -18,7 +16,7 @@ MODBUS_PORT             = 502
 DEFAULT_CHARGE_CONTROLLER_IP   = '192.168.0.253'
 DEFAULT_C23_RS485              = '/dev/ttymxc2' # mxc3 on schematics
 
-# from pymodbus.client.sync import ModbusTcpClient 
+# from pymodbus.client.sync import ModbusTcpClient
 
 
 class FdsChargeController():
@@ -26,28 +24,36 @@ class FdsChargeController():
 	serialPort       = ""
 	ipAddress        = ""
 	modbusClient     = None
+	isDebug          = False
 
+	def __init__(self, communicationType, port, isDebug=False):
 
-	def __init__(self, communicationType, port):
+		self.isDebug = isDebug
 
 		if (communicationType == MODBUS_ETH):
 			self.communicationType = communicationType
 			self.ipAddress = port
 			logging.debug("FdsChargeController: ETH enabled ")
-		elif (communicationType == MODBUS_RTU):			
+		elif (communicationType == MODBUS_RTU):
 			self.communicationType = communicationType
 			self.serialPort = port
 			logging.debug("FdsChargeController: RTU enabled ")
-		else:				
+		else:
 			raise ValueError("Unsupported Modbus Communication Type. Choose MODBUS_RTU or MODBUS_ETH.")
-	
-	
 
-	def connect(self):		
-		if(self.communicationType == MODBUS_ETH):			
+
+
+	def connect(self):
+		if(self.communicationType == MODBUS_ETH):
 			logging.debug("FdsChargeController: connect EHT called")
 		elif (self.communicationType == MODBUS_RTU):
 			logging.debug("FdsChargeController: connect RTU called")
+
+		if self.isDebug == False:
+			for host in hosts:
+		    	print "Trying to connect to Modbus IP Host %s ..." % host
+		    	client = ModbusClient(host, fds.MODBUS_PORT)
+		    	client.connect()
 
 
 
@@ -89,10 +95,10 @@ class FdsChargeController():
 				data["maxTb_daily"]  = rr.registers[72]
 				data["dipswitches"]  = bin(rr.registers[48])[::-1][:-2].zfill(8)
 				#led_state            = rr.registers
-			except ModbusIOException as e: 
+			except ModbusIOException as e:
 				logging.error('Charge Controller: modbusIOException')
 				raise e
-			except Exception as e: 
+			except Exception as e:
 				logging.error('Charge Controller: unpredicted exception')
 				raise e
 		else:
@@ -113,7 +119,7 @@ class FdsChargeController():
 			data["dipswitches"]  = bin(0x02)[::-1][:-2].zfill(8)
 
 		return data
-		
+
 
 
 	def getRelayBoxData(self, client):
@@ -123,7 +129,7 @@ class FdsChargeController():
 			try:
 				# read registers. Start at 0 for convenience
 				rr = client.read_holding_registers(0,18, unit=RELAYBOX_UNIT)
-				v_scale = float(78.421 * 2**(-15)) 
+				v_scale = float(78.421 * 2**(-15))
 
 				data["adc_vb"]        = rr.registers[0] * v_scale
 				data["adc_vch_1"]     = rr.registers[1] * v_scale
@@ -143,10 +149,10 @@ class FdsChargeController():
 				data["ch_alarms_2"]   = rr.registers[15]
 				data["ch_alarms_3"]   = rr.registers[16]
 				data["ch_alarms_4"]   = rr.registers[17]
-			except ModbusIOException as e: 
+			except ModbusIOException as e:
 				logging.error('RelayBoxRead: modbusIOException')
 				raise e
-			except Exception as e: 
+			except Exception as e:
 				logging.error('RelayBoxRead: unpredicted exception')
 				raise e
 
@@ -186,13 +192,13 @@ class FdsChargeController():
 				data["relay_6"]   = rr.bits[5]
 				data["relay_7"]   = rr.bits[6]
 				data["relay_8"]   = rr.bits[7]
-			except ModbusIOException as e: 
+			except ModbusIOException as e:
 				logging.error( 'RelayState: modbusIOException')
 				raise e
-			except Exception as e: 
+			except Exception as e:
 				logging.error('RelayState: unpredicted exception')
 				raise
-		else: 
+		else:
 			data["relay_1"]   = 0x1
 			data["relay_2"]   = 0x1
 			data["relay_3"]   = 0x1
