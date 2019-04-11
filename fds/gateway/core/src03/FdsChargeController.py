@@ -51,9 +51,9 @@ class FdsChargeController():
 
 		if self.isDebug == False:
 			for host in hosts:
-		    	print "Trying to connect to Modbus IP Host %s ..." % host
-		    	client = ModbusClient(host, fds.MODBUS_PORT)
-		    	client.connect()
+		    		print "Trying to connect to Modbus IP Host %s ..." % host
+		    		client = ModbusClient(host, fds.MODBUS_PORT)
+		    		client.connect()
 
 
 

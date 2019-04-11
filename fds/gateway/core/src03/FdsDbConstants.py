@@ -116,12 +116,12 @@ insert_mcu = """
 			pres1,
 			pres2,
 			pres3,
-            flux1,
-            flux2,
-            cc,
-            ac1,
-            ac2,
-            timestamp
+	                flux1,
+        	        flux2,
+            		cc,
+                        ac1,
+                        ac2,
+                        timestamp
 		) VALUES (
 			NULL,
 			:temp1,
@@ -129,12 +129,12 @@ insert_mcu = """
 			:pres1,
 			:pres2,
 			:pres3,
-            :flux1,
-            :flux2,
-            :cc,
-            :ac1,
-            :ac2,
-            datetime('now')
+            	        :flux1,
+            		:flux2,
+            		:cc,
+            		:ac1,
+            		:ac2,
+            		datetime('now')
 		);
              """
 

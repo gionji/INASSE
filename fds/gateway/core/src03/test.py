@@ -1,5 +1,9 @@
 import logging
 import sqlite3
+import time
+import sys
+
+sys.dont_write_bytecode = True
 
 import FdsChargeController as FdsCC
 import FdsSensorUnico      as FdsSS
@@ -17,7 +21,7 @@ def createDbTables( dbConnection ):
 		cur.execute(FdsDB.sql_create_relaybox_table)
 		cur.execute(FdsDB.sql_create_relay_state_table)
 		logging.info("Charge controller tables created!")
-		cur.execute(FdsDB.sql_create_mcutable)
+		cur.execute(FdsDB.sql_create_mcu_table)
 	else:
 		print("Error! cannot create the database connection.")
 
@@ -116,37 +120,38 @@ def main():
             # ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
             # Se passo None va in modalita # DEBUG:
             # TODO: aggiustare questa cosa
-    		chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, "192.168.0.1")
+            chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, "192.168.0.1", isDebug = True )
 
             # Fa solo finta adesso, non serve a una sega
             chargeController.connect()
 
             # get data from Modbus devices
-    		dataCC = chargeController.getChargeControllerData(None)
-    		dataRB = chargeController.getRelayBoxData(None)
-    		dataRS = chargeController.getRelayBoxState(None)
+    	    dataCC = chargeController.getChargeControllerData(None)
+    	    dataRB = chargeController.getRelayBoxData(None)
+    	    dataRS = chargeController.getRelayBoxState(None)
 
     	except Exception as e:
-    		print "Error reading Charge controller"
-    		print e
+    	    print "Error reading Charge controller"
+    	    print e
 
     	try:
             # initialize the data structure for MCU data
-    		mcuData = dict()
+    	    mcuData = dict()
 
             # initialize the MCU object
-    		arduino = FdsSS.FdsSensor(busId = 3)
-    		arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
+    	    arduino = FdsSS.FdsSensor(busId = 3)
+    	    arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
 
             # get Data from MCUs
-    		mcuData  = arduino.getMcuData(isDebug = True)
+    	    mcuData  = arduino.getMcuData(isDebug = True)
+	    print "MCU_DATA: " + str(mcuData)			
 
             # dati dagli arduini effettivamente connessi
             mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
             mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
             mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
     	except Exception as e:
-    		print "Reading ARDUINOS: " + str(e)
+    	    print "Reading ARDUINOS: " + str(e)
 
         ## save data to local sqlite db
         saveDataToDb( dbConnection,
