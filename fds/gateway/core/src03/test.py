@@ -2,6 +2,7 @@ import logging
 import sqlite3
 import time
 import sys
+import requests
 
 sys.dont_write_bytecode = True
 
@@ -74,7 +75,7 @@ def exportLocalDbToJson(dbName, outputPath):
 
 	# for each of the bables , select all the records from the table
 	for table_name in tables:
-		# table_name = table_name[0]
+		table_name = table_name[0]
 		# print table_name['name']
 
 		conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
@@ -86,9 +87,17 @@ def exportLocalDbToJson(dbName, outputPath):
 
 		results = cur1.fetchall()
 
-		# generate and save JSON files with the table name for each of the database tables
-		with open(outputPath + '/' + table_name['name']+'.json', 'a') as the_file:
-			the_file.write(format(results).replace(" u'", "'").replace("'", "\""))
+        data_json = format(results).replace(" u'", "'").replace("'", "\"")
+
+        SERVER_IP = '25.46.34.214'
+        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+        payload = json.dumps(data_json)
+        r = requests.post("http://"+ SERVER_IP +":8888/sync/cc", data=payload, headers=headers)
+        print("Response cc: ", r)
+
+		### generate and save JSON files with the table name for each of the database tables
+		# with open(outputPath + '/' + table_name['name']+'.json', 'a') as the_file:
+		#	the_file.write(format(results).replace(" u'", "'").replace("'", "\""))
 
 	connection.close()
 
@@ -144,7 +153,7 @@ def main():
 
             # get Data from MCUs
     	    mcuData  = arduino.getMcuData(isDebug = True)
-	    print "MCU_DATA: " + str(mcuData)			
+	    print "MCU_DATA: " + str(mcuData)
 
             # dati dagli arduini effettivamente connessi
             mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
