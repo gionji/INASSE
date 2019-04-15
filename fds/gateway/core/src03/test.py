@@ -4,6 +4,8 @@ import time
 import sys
 import requests
 import json
+import eventlet
+eventlet.monkey_patch()
 
 sys.dont_write_bytecode = True
 
@@ -16,13 +18,15 @@ import FdsSensorUnico4mcu  as FdsSS4Mcu
 
 
 ######################################################33
-SERVER_IP = '25.46.34.214' # macchina virtuale gionji su asus
+SERVER_IP = 'localhost' # macchina virtuale gionji su asus
 
-READ_CYCLES_BEFORE_SYNC = 5
-DELAY_BETWEEN_READINGS  = 2.0
+READ_CYCLES_BEFORE_SYNC = 4
+DELAY_BETWEEN_READINGS  = 1.0
 
 IS_MODBUS_IN_DEBUG_MODE = True
-IS_MCU_IN_DEBUG_MODE = True
+IS_MCU_IN_DEBUG_MODE    = True
+
+BOARD_ID = "fds-neo-lab01"
 #######################################################
 
 
@@ -73,9 +77,25 @@ def dict_factory(cursor, row):
     return d
 
 
+def sendRequestToServer(table_name, data, timeout):
+
+    with eventlet.Timeout( timeout ):
+        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+        payload = json.dumps(data)
+        r = requests.post("http://"+ SERVER_IP +":8888/sync/" + str(table_name), data=payload, headers=headers)
+        
+        response = r.content
+        # print response
+
+        ### if response is ok 200  <Response [200]>
+        # empty the db or sign it as synced
+        
+        #print("Response " + table_name, r)
+        return r
 
 
-def exportLocalDbToJson(dbName, outputPath):
+
+def getDbTablesJson(dbName, outputPath):
 	# connect to the SQlite databases
 	connection = sqlite3.connect( dbName )
 	connection.row_factory = dict_factory
@@ -85,38 +105,54 @@ def exportLocalDbToJson(dbName, outputPath):
 	# select all the tables from the database
 	cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
 	tables = cursor.fetchall()
-
+        
+        tables_jsons = dict()
 	# for each of the bables , select all the records from the table
 	for table_name in tables:
 		# table_name = table_name[0]
 		# print table_name['name']
 
+                logging.debug('Exporting ' + str(table_name['name']) + ' to json')
+
 		conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
 		conn.row_factory = dict_factory
 
 		cur1 = conn.cursor()
-
-		cur1.execute("SELECT * FROM "+table_name['name'])
-
+		cur1.execute("SELECT * FROM "+table_name['name']+ " where synced == 0")
 		results = cur1.fetchall()
 
-        	data_json = format(results).replace(" u'", "'").replace("'", "\"")
+                data_json = format(results).replace(" u'", "'").replace("'", "\"")
+                print "Number of records in the table " + table_name['name'] + ": "+ str(len(results))
 
-        	SERVER_IP = '25.46.34.214'
-        	headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        	payload = json.dumps(data_json)
-        	r = requests.post("http://"+ SERVER_IP +":8888/sync/cc", data=payload, headers=headers)
-        	print("Response cc: ", r)
+                ## TODO add the board id in the json
+                data_json = "{ \"boardId\" : "+ BOARD_ID +", \"data\" : " + data_json + "}"
 
+                tables_jsons[ table_name['name'] ] = data_json
+    
 		### generate and save JSON files with the table name for each of the database tables
 		# with open(outputPath + '/' + table_name['name']+'.json', 'a') as the_file:
 		#	the_file.write(format(results).replace(" u'", "'").replace("'", "\""))
 
 	connection.close()
 
+        return tables_jsons
+
+
+def markAsSynced(tableName):        
+        conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )        
+        cur1 = conn.cursor()
+        cur1.execute( "UPDATE "+ tableName + " set "+ "synced"  +" = " + "1" )
+        conn.close()
+
 
 def syncronizeDb(remoteAddress, machineName):
-        exportLocalDbToJson(FdsDB.SQLITE_FILENAME, 'jsons')
+        json_tables = getDbTablesJson(FdsDB.SQLITE_FILENAME, 'jsons')
+        
+        for table_name, value in json_tables.iteritems():
+                logging.info("synching table " + table_name)
+                r = sendRequestToServer(table_name, value, timeout=3)
+                markAsSynced(table_name)
+        
         print "Syncronize db. Mo ce provamo"
 
 
@@ -165,10 +201,10 @@ def main():
     	    mcuData  = arduino.getMcuData(isDebug = IS_MCU_IN_DEBUG_MODE)
 
 
-            # dati dagli arduini effettivamente connessi
-            mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
-            mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
-            mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
+            ## dati dagli arduini effettivamente connessi
+            # mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
+            #mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
+            #mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
     	except Exception as e:
     	    print "Reading ARDUINOS: " + str(e)
 

@@ -65,7 +65,7 @@ sql_create_relay_state_table = """ CREATE TABLE IF NOT EXISTS relay_state (
 
 # complete query
 '''
-sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu_external (
+sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu (
                                         id          integer     PRIMARY KEY,
                                         timestamp   date        NOT NULL,
                                         temp1       float       NOT NULL,
@@ -87,7 +87,7 @@ sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu_external (
                                     ); """
 '''
 
-sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu_external (
+sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu (
                                         id          integer     PRIMARY KEY,
                                         timestamp   date        NOT NULL,
                                         temp1       float       NOT NULL,
@@ -109,7 +109,7 @@ sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu_external (
 ### SQLITE QUERIES TO INSERT DATA
 
 insert_mcu = """
-		INSERT INTO mcu_external (
+		INSERT INTO mcu (
 			id,
 			temp1,
 			temp2,

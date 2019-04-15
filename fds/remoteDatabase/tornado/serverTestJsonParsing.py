@@ -34,7 +34,7 @@ class McuHandler(tornado.web.RequestHandler):
 
         #print the readed json PRETTY
         print json.dumps(data, indent=2, sort_keys=True)
-
+        self.write("MCU Sync ok")
 
 
 class ChargeControllerHandler(tornado.web.RequestHandler):
@@ -47,6 +47,7 @@ class ChargeControllerHandler(tornado.web.RequestHandler):
 
         #print the readed json PRETTY
         print json.dumps(data, indent=2, sort_keys=True)
+        self.write("CC Sync ok")
 
 
 
@@ -60,12 +61,13 @@ class RelayBoxHandler(tornado.web.RequestHandler):
 
         #print the readed json PRETTY
         print json.dumps(data, indent=2, sort_keys=True)
+        self.write("RB Sync ok")
 
 
 
 class RelayStateHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write("RelayBoxHandler Handler")
+        self.write("RelayStateHandler Handler")
 
     def post(self):
         json_data = self.request.body
@@ -73,15 +75,16 @@ class RelayStateHandler(tornado.web.RequestHandler):
 
         #print the readed json PRETTY
         print json.dumps(data, indent=2, sort_keys=True)
+        self.write("RS Sync ok")
 
 
 
 def main():
     tornado.options.parse_command_line()
     application = tornado.web.Application([
-                                           (r"/sync/cc", ChargeControllerHandler),
-                                           (r"/sync/rb", RelayBoxHandler),
-                                           (r"/sync/rs", RelayStateHandler),
+                                           (r"/sync/charge_controller", ChargeControllerHandler),
+                                           (r"/sync/relay_box", RelayBoxHandler),
+                                           (r"/sync/relay_state", RelayStateHandler),
                                            (r"/sync/mcu", McuHandler),
                                            (r"/", MainHandler)
                                            ])
