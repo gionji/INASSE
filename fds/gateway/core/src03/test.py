@@ -7,6 +7,8 @@ import json
 import eventlet
 eventlet.monkey_patch()
 
+from argparse import ArgumentParser
+
 sys.dont_write_bytecode = True
 
 import FdsChargeController as FdsCC
@@ -83,82 +85,144 @@ def sendRequestToServer(table_name, data, timeout):
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
         payload = json.dumps(data)
         r = requests.post("http://"+ SERVER_IP +":8888/sync/" + str(table_name), data=payload, headers=headers)
-        
+
         response = r.content
         # print response
 
         ### if response is ok 200  <Response [200]>
         # empty the db or sign it as synced
-        
+
         #print("Response " + table_name, r)
         return r
+
+def printLocalDbTables(dbName):
+    # connect to the SQlite databases
+    connection = sqlite3.connect( dbName )
+    connection.row_factory = dict_factory
+
+    cursor = connection.cursor()
+
+    # select all the tables from the database
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = cursor.fetchall()
+
+    tables_jsons = dict()
+    # for each of the bables , select all the records from the table
+    for table_name in tables:
+        # table_name = table_name[0]
+        # print table_name['name']
+
+        logging.debug('Exporting ' + str(table_name['name']) + ' to json')
+
+        conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
+        conn.row_factory = dict_factory
+
+        cur1 = conn.cursor()
+        cur1.execute("SELECT timestamp, synced FROM "+table_name['name']+ " where synced == 0")
+        results = cur1.fetchall()
+
+        print results
+
 
 
 
 def getDbTablesJson(dbName, outputPath):
-	# connect to the SQlite databases
-	connection = sqlite3.connect( dbName )
-	connection.row_factory = dict_factory
+    # connect to the SQlite databases
+    connection = sqlite3.connect( dbName )
+    connection.row_factory = dict_factory
 
-	cursor = connection.cursor()
+    cursor = connection.cursor()
 
-	# select all the tables from the database
-	cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-	tables = cursor.fetchall()
-        
-        tables_jsons = dict()
-	# for each of the bables , select all the records from the table
-	for table_name in tables:
-		# table_name = table_name[0]
-		# print table_name['name']
+    # select all the tables from the database
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = cursor.fetchall()
 
-                logging.debug('Exporting ' + str(table_name['name']) + ' to json')
+    tables_jsons = dict()
+     
+    # for each of the bables , select all the records from the table
+    for table_name in tables:
+        # table_name = table_name[0]
+	# print table_name['name']
 
-		conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
-		conn.row_factory = dict_factory
+	logging.debug('Exporting ' + str(table_name['name']) + ' to json')
 
-		cur1 = conn.cursor()
-		cur1.execute("SELECT * FROM "+table_name['name']+ " where synced == 0")
-		results = cur1.fetchall()
+	conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
+	conn.row_factory = dict_factory
 
-                data_json = format(results).replace(" u'", "'").replace("'", "\"")
-                print "Number of records in the table " + table_name['name'] + ": "+ str(len(results))
+	cur1 = conn.cursor()
+	cur1.execute("SELECT * FROM "+table_name['name']+ " where synced == 0")
+	results = cur1.fetchall()
 
-                ## TODO add the board id in the json
-                data_json = "{ \"boardId\" : "+ BOARD_ID +", \"data\" : " + data_json + "}"
+        data_json = format(results).replace(" u'", "'").replace("'", "\"")
+        print "Number of records in the table " + table_name['name'] + ": "+ str(len(results))
 
-                tables_jsons[ table_name['name'] ] = data_json
-    
-		### generate and save JSON files with the table name for each of the database tables
-		# with open(outputPath + '/' + table_name['name']+'.json', 'a') as the_file:
-		#	the_file.write(format(results).replace(" u'", "'").replace("'", "\""))
+        ## TODO add the board id in the json
+        data_json = "{ \"boardId\" : "+ BOARD_ID +", \"data\" : " + data_json + "}"
 
-	connection.close()
+        tables_jsons[ table_name['name'] ] = data_json
 
-        return tables_jsons
+	### generate and save JSON files with the table name for each of the database tables
+	# with open(outputPath + '/' + table_name['name']+'.json', 'a') as the_file:
+	#	the_file.write(format(results).replace(" u'", "'").replace("'", "\""))
+
+    connection.close()
+
+    return tables_jsons
 
 
-def markAsSynced(tableName):        
-        conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )        
+def markAsSynced(tableName):
+        conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
         cur1 = conn.cursor()
-        cur1.execute( "UPDATE "+ tableName + " set "+ "synced"  +" = " + "1" )
+        sync_query = "UPDATE "+ tableName + " SET "+ "synced = 1" # WHERE synced == 0"
+        cur1.execute( sync_query )
+        print "Tryng to mark as sync : " + sync_query
+        
+        cur1.execute("SELECT timestamp, synced FROM " + tableName + " where synced == 0")
+        results = cur1.fetchall()
+        print "Unsynced elements: " + str(len(results))
+        conn.commit()
         conn.close()
 
 
 def syncronizeDb(remoteAddress, machineName):
         json_tables = getDbTablesJson(FdsDB.SQLITE_FILENAME, 'jsons')
-        
+
         for table_name, value in json_tables.iteritems():
-                logging.info("synching table " + table_name)
+            print("synching table " + table_name)
+            try:
                 r = sendRequestToServer(table_name, value, timeout=3)
                 markAsSynced(table_name)
-        
+            except:
+                print "Error sync DBi"
+
         print "Syncronize db. Mo ce provamo"
 
 
 
 def main():
     print "Let's test"
+
+    parser = ArgumentParser()
+
+    parser.add_argument('--server', '-s', action='store', default='localhost',
+                   dest='serverIp', type=str,
+                   help='Set the remote server IP address')
+    parser.add_argument('--delay', '-d', action='store', default=2,
+                   dest='delay', type=int,
+                   help='Set the delay between sensors readings')
+    parser.add_argument('--synccycles', '-c', action='store', default=5,
+                   dest='cycles', type=int,
+                   help='Set the number of cycles after you syncronize the remote database')
+
+    results = parser.parse_args()
+
+    SERVER_IP = results.serverIp
+    DELAY_BETWEEN_READINGS = results.delay
+    READ_CYCLES_BEFORE_SYNC = results.cycles
+
+    print "server ip: " + str(SERVER_IP)
+    print "delay: " + str(DELAY_BETWEEN_READINGS)
+    print "cycles: " + str(READ_CYCLES_BEFORE_SYNC)
 
     ## connect to the local db: create a new file if doesn't exists
     dbConnection = sqlite3.connect( FdsDB.SQLITE_FILENAME )
@@ -168,59 +232,64 @@ def main():
     # but the fields will be different
     createDbTables( dbConnection )
 
+    while True:
+        ## reads N times before to sync the local db with the remote one
+        for i in range(0, READ_CYCLES_BEFORE_SYNC):
+            try:
+                # ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
+                # Se passo None va in modalita # DEBUG:
+                # TODO: aggiustare questa cosa
+                chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, "192.168.0.1", isDebug = IS_MODBUS_IN_DEBUG_MODE )
 
-    ## reads N times before to sync the local db with the remote one
-    for i in range(0, READ_CYCLES_BEFORE_SYNC):
-    	try:
-            # ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
-            # Se passo None va in modalita # DEBUG:
-            # TODO: aggiustare questa cosa
-            chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, "192.168.0.1", isDebug = IS_MODBUS_IN_DEBUG_MODE )
+                # Fa solo finta adesso, non serve a una sega
+                chargeController.connect()
 
-            # Fa solo finta adesso, non serve a una sega
-            chargeController.connect()
+                # get data from Modbus devices
+        	dataCC = chargeController.getChargeControllerData(None)
+        	dataRB = chargeController.getRelayBoxData(None)
+        	dataRS = chargeController.getRelayBoxState(None)
 
-            # get data from Modbus devices
-    	    dataCC = chargeController.getChargeControllerData(None)
-    	    dataRB = chargeController.getRelayBoxData(None)
-    	    dataRS = chargeController.getRelayBoxState(None)
+            except Exception as e:
+                print "Error reading Charge controller"
+                print e
 
-    	except Exception as e:
-    	    print "Error reading Charge controller"
-    	    print e
+            try:
+                # initialize the data structure for MCU data
+                mcuData = dict()
+                
+                # initialize the MCU object
+        	arduino = FdsSS.FdsSensor(busId = 3)
+        	arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
 
-    	try:
-            # initialize the data structure for MCU data
-    	    mcuData = dict()
+                # get Data from MCUs
+        	mcuData  = arduino.getMcuData(isDebug = IS_MCU_IN_DEBUG_MODE)
 
-            # initialize the MCU object
-    	    arduino = FdsSS.FdsSensor(busId = 3)
-    	    arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
+                ## dati dagli arduini effettivamente connessi
+                # TODO se c'e' errore ritorna None, non da eccezione
+                with eventlet.Timeout( 3 ):
+                    mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
+                    mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
+                    mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
+            except Exception as e:
+                print "ERRRORRRR:   Reading ARDUINOS: " + str(e)
 
-            # get Data from MCUs
-    	    mcuData  = arduino.getMcuData(isDebug = IS_MCU_IN_DEBUG_MODE)
+            ## save data to local sqlite db
+            saveDataToDb( dbConnection,
+                    dataCC,
+                    dataRB,
+                    dataRS,
+                    mcuData)
+
+            print "Data saved. Cycle: " + str(i)
+
+            time.sleep(DELAY_BETWEEN_READINGS)
+
+        ## syncronize data
+        syncronizeDb( FdsDB.SQLITE_FILENAME, BOARD_ID )
 
 
-            ## dati dagli arduini effettivamente connessi
-            # mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
-            #mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
-            #mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
-    	except Exception as e:
-    	    print "Reading ARDUINOS: " + str(e)
-
-        ## save data to local sqlite db
-        saveDataToDb( dbConnection,
-                dataCC,
-                dataRB,
-                dataRS,
-                mcuData)
-
-    	print "Data saved. Cycle: " + str(i)
-
-        time.sleep(DELAY_BETWEEN_READINGS)
-
-    ## syncronize data
-    syncronizeDb( FdsDB.SQLITE_FILENAME, "BOARD:001" )
 
 if __name__== "__main__":
     main()
+    
+
