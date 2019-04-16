@@ -20,8 +20,7 @@ import FdsSensorUnico4mcu  as FdsSS4Mcu
 
 
 ######################################################33
-SERVER_IP = 'localhost' # macchina virtuale gionji su asus
-
+SERVER_IP = '192.168.1.150' # R
 READ_CYCLES_BEFORE_SYNC = 4
 DELAY_BETWEEN_READINGS  = 1.0
 
@@ -35,6 +34,8 @@ BOARD_ID = "fds-neo-lab01"
 def createDbTables( dbConnection ):
         # get te cursor
         cur = dbConnection.cursor()
+
+	print "Creating new DB file!!!!"
 
 	if cur is not None:
 		cur.execute(FdsDB.sql_create_charge_controller_table)
@@ -192,8 +193,8 @@ def syncronizeDb(remoteAddress, machineName):
             try:
                 r = sendRequestToServer(table_name, value, timeout=3)
                 markAsSynced(table_name)
-            except:
-                print "Error sync DBi"
+            except Exception as e:
+                print "Error sync DB:" + str( e )
 
         print "Syncronize db. Mo ce provamo"
 
@@ -216,7 +217,9 @@ def main():
 
     results = parser.parse_args()
 
-    SERVER_IP = results.serverIp
+    global SERVER_IP, DELAY_BETWEEN_READINGS, READ_CYCLES_BEFORE_SYNC 
+
+    SERVER_IP = str(results.serverIp)
     DELAY_BETWEEN_READINGS = results.delay
     READ_CYCLES_BEFORE_SYNC = results.cycles
 
