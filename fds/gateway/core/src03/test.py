@@ -209,10 +209,10 @@ def main():
                    help='Set the remote server IP address')
     parser.add_argument('--delay', '-d', action='store', default=2,
                    dest='delay', type=int,
-                   help='Set the delay between sensors readings')
+                   help='Set the delay between sensors readings (seconds) ')
     parser.add_argument('--synccycles', '-c', action='store', default=5,
                    dest='cycles', type=int,
-                   help='Set the number of cycles after you syncronize the remote database')
+                   help='Set the number of cycles after you syncronize the remote database (cycles)')
 
     results = parser.parse_args()
 
