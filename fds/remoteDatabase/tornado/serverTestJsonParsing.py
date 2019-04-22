@@ -8,8 +8,66 @@ import tornado.web
 from tornado.options import define, options
 
 import json
+import logging
+import sqlite3
+
+import FdsRdbConstants as FdsRDB
+
+def initializeDatabase( databaseFilename ):
+    ## open the db
+    logging.info("Opening DB connection ")
+    dbConnection = sqlite3.connect( databaseFilename )
+    dbCursor = dbConnection.cursor()
+
+    # queries create
+    if dbCursor is not None:
+
+        logging.info("Creating tables if not exists ")
+        dbCursor.execute(FdsRDB.remote_sql_create_charge_controller_table)
+        dbCursor.execute(FdsRDB.remote_sql_create_relaybox_table)
+        dbCursor.execute(FdsRDB.remote_sql_create_relay_state_table)
+        dbCursor.execute(FdsRDB.remote_sql_create_mcu_table)
+    else:
+        logging.error("Error! cannot create the database tables.")
+        return False
+
+    #commit
+    dbConnection.commit()
+    #close connection
+    dbConnection.close()
+
+    return True
+
+
+
+
+def addDataToDb(table_name, json_data):
+    ## open connection
+    dbConnection = sqlite3.connect( databaseFilename )
+    dbCursor = dbConnection.cursor()
+
+    # get the board ID
+    boardId = ''
+
+    # get the table type
+
+    # query
+
+    # commit
+
+    # close connection
+
+    return None
+
+
+def saveJsonAsFile():
+    return None
+
+
+
 
 define("port", default=8888, help="run on the given port", type=int)
+
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -87,6 +145,9 @@ class RelayStateHandler(tornado.web.RequestHandler):
 
 
 def main():
+
+    initializeDatabase( FdsRDB.SQLITE_FILENAME )
+
     tornado.options.parse_command_line()
     application = tornado.web.Application([
                                            (r"/sync/charge_controller", ChargeControllerHandler),

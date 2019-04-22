@@ -32,8 +32,8 @@ BOARD_ID = "fds-neo-lab01"
 
 
 def createDbTables( dbConnection ):
-        # get te cursor
-        cur = dbConnection.cursor()
+    # get te cursor
+    cur = dbConnection.cursor()
 
 	print "Creating new DB file!!!!"
 
@@ -139,7 +139,7 @@ def getDbTablesJson(dbName, outputPath):
     tables = cursor.fetchall()
 
     tables_jsons = dict()
-     
+
     # for each of the bables , select all the records from the table
     for table_name in tables:
         # table_name = table_name[0]
@@ -177,7 +177,7 @@ def markAsSynced(tableName):
         sync_query = "UPDATE "+ tableName + " SET "+ "synced = 1" # WHERE synced == 0"
         cur1.execute( sync_query )
         print "Tryng to mark as sync : " + sync_query
-        
+
         cur1.execute("SELECT timestamp, synced FROM " + tableName + " where synced == 0")
         results = cur1.fetchall()
         print "Unsynced elements: " + str(len(results))
@@ -217,7 +217,7 @@ def main():
 
     results = parser.parse_args()
 
-    global SERVER_IP, DELAY_BETWEEN_READINGS, READ_CYCLES_BEFORE_SYNC 
+    global SERVER_IP, DELAY_BETWEEN_READINGS, READ_CYCLES_BEFORE_SYNC
 
     SERVER_IP = str(results.serverIp)
     DELAY_BETWEEN_READINGS = results.delay
@@ -235,17 +235,29 @@ def main():
     # but the fields will be different
     createDbTables( dbConnection )
 
+    try:
+        # initialize the MCU object
+        arduino = FdsSS.FdsSensor(busId = 3)
+        arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
+    except Exception as e:
+        print e
+
+    try:
+        # ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
+        # Se passo None va in modalita # DEBUG:
+        # TODO: aggiustare questa cosa
+        chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, "192.168.0.1", isDebug = IS_MODBUS_IN_DEBUG_MODE )
+
+        # Fa solo finta adesso, non serve a una sega
+        chargeController.connect()
+    except Exception as e:
+        print e
+
     while True:
         ## reads N times before to sync the local db with the remote one
         for i in range(0, READ_CYCLES_BEFORE_SYNC):
             try:
-                # ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
-                # Se passo None va in modalita # DEBUG:
-                # TODO: aggiustare questa cosa
-                chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, "192.168.0.1", isDebug = IS_MODBUS_IN_DEBUG_MODE )
 
-                # Fa solo finta adesso, non serve a una sega
-                chargeController.connect()
 
                 # get data from Modbus devices
         	dataCC = chargeController.getChargeControllerData(None)
@@ -259,10 +271,6 @@ def main():
             try:
                 # initialize the data structure for MCU data
                 mcuData = dict()
-                
-                # initialize the MCU object
-        	arduino = FdsSS.FdsSensor(busId = 3)
-        	arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
 
                 # get Data from MCUs
         	mcuData  = arduino.getMcuData(isDebug = IS_MCU_IN_DEBUG_MODE)
@@ -294,5 +302,3 @@ def main():
 
 if __name__== "__main__":
     main()
-    
-
