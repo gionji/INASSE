@@ -21,7 +21,6 @@ def initializeDatabase( databaseFilename ):
 
     # queries create
     if dbCursor is not None:
-
         logging.info("Creating tables if not exists ")
         dbCursor.execute(FdsRDB.remote_sql_create_charge_controller_table)
         dbCursor.execute(FdsRDB.remote_sql_create_relaybox_table)
@@ -44,15 +43,17 @@ def initializeDatabase( databaseFilename ):
 def addDataToDb(table_name, json_data):
     ## open connection
     dbConnection = sqlite3.connect( databaseFilename )
-    dbCursor = dbConnection.cursor()
 
     # get the board ID
     boardId = ''
 
-    # get the table type
+    # get te cursor
+    cur = dbConnection.cursor()
 
-    # query
+    print ">>>>>> " + table_name
+    print json_data + ">>>>>>"
 
+    dbConnection.commit()
     # commit
 
     # close connection

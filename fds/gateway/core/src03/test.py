@@ -35,16 +35,16 @@ def createDbTables( dbConnection ):
     # get te cursor
     cur = dbConnection.cursor()
 
-	print "Creating new DB file!!!!"
+    print "Creating new DB file!!!!"
 
-	if cur is not None:
-		cur.execute(FdsDB.sql_create_charge_controller_table)
-		cur.execute(FdsDB.sql_create_relaybox_table)
-		cur.execute(FdsDB.sql_create_relay_state_table)
-		logging.info("Charge controller tables created!")
-		cur.execute(FdsDB.sql_create_mcu_table)
-	else:
-		print("Error! cannot create the database connection.")
+    if cur is not None:
+        cur.execute(FdsDB.sql_create_charge_controller_table)
+	cur.execute(FdsDB.sql_create_relaybox_table)
+	cur.execute(FdsDB.sql_create_relay_state_table)
+	logging.info("Charge controller tables created!")
+	cur.execute(FdsDB.sql_create_mcu_table)
+    else:
+	print("Error! cannot create the database connection.")
 
 
 
