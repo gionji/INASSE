@@ -158,7 +158,7 @@ def getDbTablesJson(dbName, outputPath):
         print "Number of records in the table " + table_name['name'] + ": "+ str(len(results))
 
         ## TODO add the board id in the json
-        data_json = "{ \"boardId\" : "+ BOARD_ID +", \"data\" : " + data_json + "}"
+        data_json = "{\"boardId\": \""+ BOARD_ID +"\",\"data\": " + data_json + "}"
 
         tables_jsons[ table_name['name'] ] = data_json
 
@@ -238,7 +238,7 @@ def main():
     try:
         # initialize the MCU object
         arduino = FdsSS.FdsSensor(busId = 3)
-        arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
+       # arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
     except Exception as e:
         print e
 
@@ -257,8 +257,6 @@ def main():
         ## reads N times before to sync the local db with the remote one
         for i in range(0, READ_CYCLES_BEFORE_SYNC):
             try:
-
-
                 # get data from Modbus devices
         	dataCC = chargeController.getChargeControllerData(None)
         	dataRB = chargeController.getRelayBoxData(None)
@@ -277,10 +275,11 @@ def main():
 
                 ## dati dagli arduini effettivamente connessi
                 # TODO se c'e' errore ritorna None, non da eccezione
-                with eventlet.Timeout( 3 ):
-                    mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
-                    mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
-                    mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
+                
+		#with eventlet.Timeout( 3 ):
+                #    mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
+                #    mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
+                #    mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
             except Exception as e:
                 print "ERRRORRRR:   Reading ARDUINOS: " + str(e)
 
