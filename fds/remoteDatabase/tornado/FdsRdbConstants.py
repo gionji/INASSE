@@ -25,8 +25,7 @@ remote_sql_create_charge_controller_table = """ CREATE TABLE IF NOT EXISTS charg
                                         maxVb_daily  float   NOT NULL,
                                         minTb_daily  float   NOT NULL,
                                         maxTb_daily  float   NOT NULL,
-                                        dipswitches  text    NOT NULL,
-                                        synced       integer(1) default 0
+                                        dipswitches  text    NOT NULL
                                     ); """
 
 remote_sql_create_relaybox_table = """ CREATE TABLE IF NOT EXISTS relay_box (
@@ -51,8 +50,7 @@ remote_sql_create_relaybox_table = """ CREATE TABLE IF NOT EXISTS relay_box (
                                         ch_alarms_1   integer NOT NULL,
                                         ch_alarms_2   integer NOT NULL,
                                         ch_alarms_3   integer NOT NULL,
-                                        ch_alarms_4   integer NOT NULL,
-                                        synced        integer(1) default 0
+                                        ch_alarms_4   integer NOT NULL
                                     ); """
 
 
@@ -63,8 +61,7 @@ remote_sql_create_relay_state_table = """ CREATE TABLE IF NOT EXISTS relay_state
                                         timestamp     date    NOT NULL,
                                         relay_1   integer     NOT NULL,
                                         relay_2   integer     NOT NULL,
-                                        relay_3   integer     NOT NULL,
-                                        synced    integer(1)  default 0
+                                        relay_3   integer     NOT NULL
                                     ); """
 
 
@@ -84,8 +81,7 @@ remote_sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu (
                                         flux2       integer     NOT NULL,
                                         cc          float       NOT NULL,
                                         ac1         float       NOT NULL,
-                                        ac2         float       NOT NULL,
-                                        synced      integer(1)  default 0
+                                        ac2         float       NOT NULL
                                     ); """
 
 
@@ -96,22 +92,24 @@ remote_sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu (
 remote_insert_mcu = """
 		INSERT INTO mcu (
 			id,
-            boardId, syncTime,
+                        boardId, 
+                        syncTime,
 			temp1,
 			temp2,
 			pres1,
 			pres2,
 			pres3,
-            flux1,
+                        flux1,
 			flux2,
 			cc,
 			ac1,
-            ac2,
-            timestamp
+                        ac2,
+                        timestamp
 		) VALUES (
 			NULL,
-			:boardId, datetime('now'),
-            :temp1,
+			:boardId, 
+                        datetime('now'),
+                        :temp1,
 			:temp2,
 			:pres1,
 			:pres2,
