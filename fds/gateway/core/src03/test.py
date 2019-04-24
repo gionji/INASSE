@@ -158,8 +158,13 @@ def getDbTablesJson(dbName, outputPath):
     	data_json = format(results).replace(" u'", "'").replace("'", "\"")
     	print "Number of records in the table " + table_name['name'] + ": "+ str(len(results))
 
+<<<<<<< HEAD
     	## TODO add the board id in the json
     	data_json = "{\"boardId\" : \""+ BOARD_ID +"\", \"data\" : " + data_json + "}"
+=======
+        ## TODO add the board id in the json
+        data_json = "{\"boardId\": \""+ BOARD_ID +"\",\"data\": " + data_json + "}"
+>>>>>>> 0a28e4184e35f4aa505d9ee6b927f0f219eb0c00
 
     	tables_jsons[ table_name['name'] ] = data_json
 
@@ -241,8 +246,13 @@ def main():
 
     try:
         # initialize the MCU object
+<<<<<<< HEAD
         arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE)
         # arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
+=======
+        arduino = FdsSS.FdsSensor(busId = 3)
+       # arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
+>>>>>>> 0a28e4184e35f4aa505d9ee6b927f0f219eb0c00
     except Exception as e:
         print e
 
@@ -279,10 +289,18 @@ def main():
 
                 ## dati dagli arduini effettivamente connessi
                 # TODO se c'e' errore ritorna None, non da eccezione
+<<<<<<< HEAD
 #                with eventlet.Timeout( 3 ):
 #                    mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
 #                    mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
 #                    mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
+=======
+                
+		#with eventlet.Timeout( 3 ):
+                #    mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
+                #    mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
+                #    mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
+>>>>>>> 0a28e4184e35f4aa505d9ee6b927f0f219eb0c00
             except Exception as e:
                 print "ERRRORRRR:   Reading ARDUINOS: " + str(e)
 
