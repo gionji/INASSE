@@ -1,6 +1,11 @@
 
 SQLITE_FILENAME = './DB_fds_offgridbox.sqlite'
 
+TABLE_MCU = 'mcu'
+TABLE_CHARGECONTROLLER = 'charge_controller'
+TABLE_RELAYBOX = 'relay_box'
+TABLE_RELAYSTATE = 'relay_state'
+
 
  # Define the State list
 CC_STATE = ['Start', 'Night Check', 'Disconnected', 'Night', 'Fault!', 'MPPT', 'Absorption', 'FloatCharge', 'Equalizing', 'Slave']
@@ -85,93 +90,106 @@ remote_sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu (
                                     ); """
 
 
+def addDataTableMCU(boardId, data):
+    query_data = list()
+    for d in data:
+        query_data.append( tuple([boardId,
+                                      d['temp1'],
+                                      d['temp2'],
+
+                                      d['pres1'],
+                                      d['pres2'],
+                                      d['pres3'],
+                                      d['flux1'],
+                                      d['flux2'],
+
+                                      d['cc'],
+                                      d['ac1'],
+                                      d['ac2'],
+                                      d['timestamp']
+                                      ]))
+
+    query = "INSERT INTO " + TABLE_MCU + " VALUES (NULL, ?, datetime('now'), ?, ?,   ?, ?, ?, ?, ?,  ?, ?, ?, ?)"
+
+    return query, query_data
 
 
-### SQLITE QUERIES TO INSERT DATA
+def addDataTableChargeController(boardId, data):
+    query_data = list()
 
-remote_insert_mcu = """
-		INSERT INTO mcu (
-			id,
-                        boardId, 
-                        syncTime,
-			temp1,
-			temp2,
-			pres1,
-			pres2,
-			pres3,
-                        flux1,
-			flux2,
-			cc,
-			ac1,
-                        ac2,
-                        timestamp
-		) VALUES (
-			NULL,
-			:boardId, 
-                        datetime('now'),
-                        :temp1,
-			:temp2,
-			:pres1,
-			:pres2,
-			:pres3,
-			:flux1,
-			:flux2,
-			:cc,
-			:ac1,
-			:ac2,
-			:timestamp
-		);
-             """
+    for d in data:
+        query_data.append( tuple([boardId,
+                                      d['timestamp'],
+                                      d['battsV'],
+
+                                      d['battsSensedV'],
+                                      d['battsI'],
+                                      d['arrayV'],
+                                      d['arrayI'],
+                                      d['statenum'],
+
+                                      d['hsTemp'],
+                                      d['rtsTemp'],
+                                      d['outPower'],
+                                      d['inPower'],
+                                      d['minVb_daily'],
+
+                                      d['maxVb_daily'],
+                                      d['minTb_daily'],
+                                      d['maxTb_daily'],
+                                      d['dipswitches']
+                                      ]))
+    query = "INSERT INTO " + TABLE_CHARGECONTROLLER + " VALUES (NULL, ?, datetime('now'), ?, ?,   ?, ?, ?, ?, ?,   ?, ?, ?, ?, ?,  ?, ?, ?, ?)"
+
+    return query, query_data
 
 
-remote_insert_relay_box = """
-            INSERT INTO relay_box (
-              id,
-              boardId, syncTime,
-              ch_alarms_3, hourmeter_LO,
-              ch_faults_1, ch_alarms_1,
-              ch_faults_3, ch_faults_2, ch_alarms_4, ch_faults_4, hourmeter_HI,
-              adc_vb, adc_vch_4, adc_vch_1, adc_vch_2, adc_vch_3,
-              t_mod, global_faults, global_alarms, ch_alarms_2 , timestamp
-              )
-            VALUES (
-              NULL,
-              :boardId, datetime('now'),
-              :ch_alarms_3, :hourmeter_LO, :ch_faults_1, :ch_alarms_1,
-              :ch_faults_3, :ch_faults_2, :ch_alarms_4, :ch_faults_4, :hourmeter_HI,
-              :adc_vb, :adc_vch_4, :adc_vch_1, :adc_vch_2, :adc_vch_3,
-              :t_mod, :global_faults, :global_alarms, :ch_alarms_2, :timestamp
-              );
-            """
 
-remote_insert_charge_controller = """
-            INSERT INTO charge_controller (
-               id,
-               boardId, syncTime,
-               outPower, minTb_daily, dipswitches,
-               arrayV, minVb_daily, arrayI, battsSensedV,
-               statenum, maxTb_daily, battsI, battsV, rtsTemp,
-               inPower, maxVb_daily, hsTemp, timestamp
-               )
-            VALUES (
-              NULL,
-              :boardId, datetime('now'),
-              :outPower, :minTb_daily, :dipswitches,
-              :arrayV, :minVb_daily, :arrayI, :battsSensedV,
-              :statenum, :maxTb_daily, :battsI, :battsV, :rtsTemp,
-              :inPower, :maxVb_daily, :hsTemp, :timestamp
-              );
-            """
+def addDataTableRelayState(boardId, data):
+    query_data = list()
 
-remote_insert_relay_state = """
-                     INSERT INTO relay_state (
-                        id,
-                        boardId, syncTime,
-                        relay_1, relay_2, relay_3, timestamp
-                        )
-                     VALUES (
-                        NULL,
-                        :boardId, datetime('now'),
-                        :relay_1, :relay_2, :relay_3, :timestamp
-                        );
-                     """
+    for d in data:
+        query_data.append( tuple([boardId,
+                                      d['timestamp'],
+                                      d['relay_1'],
+
+                                      d['relay_2'],
+                                      d['relay_3']
+                                      ]))
+    query = "INSERT INTO " + TABLE_RELAYSTATE + " VALUES (NULL, ?, datetime('now'), ?, ?,   ?, ?)"
+
+    return query, query_data
+
+
+def addDataTableRelayBox(boardId, data):
+    query_data = list()
+
+    for d in data:
+        query_data.append( tuple([boardId,
+                                      d['timestamp'],
+                                      d['adc_vb'],
+
+                                      d['adc_vch_1'],
+                                      d['adc_vch_2'],
+                                      d['adc_vch_3'],
+                                      d['adc_vch_4'],
+                                      d['t_mod'],
+
+                                      d['global_faults'],
+                                      d['global_alarms'],
+                                      d['hourmeter_HI'],
+                                      d['hourmeter_LO'],
+
+                                      d['ch_faults_1'],
+                                      d['ch_faults_2'],
+                                      d['ch_faults_3'],
+                                      d['ch_faults_4'],
+
+                                      d['ch_alarms_1'],
+                                      d['ch_alarms_2'],
+                                      d['ch_alarms_3'],
+                                      d['ch_alarms_4']
+                                      ]))
+    query = "INSERT INTO " + TABLE_RELAYBOX + " VALUES (NULL, ?, datetime('now'), ?, ?,   ?, ?, ?, ?, ?,    ?, ?, ?, ?,   ?, ?, ?, ?,   ?, ? ,?, ?)"
+
+    return query, query_data

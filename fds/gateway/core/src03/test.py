@@ -28,6 +28,7 @@ IS_MODBUS_IN_DEBUG_MODE = True
 IS_MCU_IN_DEBUG_MODE    = True
 
 BOARD_ID = "fds-neo-lab01"
+I2C_BUS = None # If none no real arduino are connected
 #######################################################
 
 
@@ -145,22 +146,22 @@ def getDbTablesJson(dbName, outputPath):
         # table_name = table_name[0]
 	# print table_name['name']
 
-	logging.debug('Exporting ' + str(table_name['name']) + ' to json')
+    	logging.debug('Exporting ' + str(table_name['name']) + ' to json')
 
-	conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
-	conn.row_factory = dict_factory
+    	conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
+    	conn.row_factory = dict_factory
 
-	cur1 = conn.cursor()
-	cur1.execute("SELECT * FROM "+table_name['name']+ " where synced == 0")
-	results = cur1.fetchall()
+    	cur1 = conn.cursor()
+    	cur1.execute("SELECT * FROM "+table_name['name']+ " where synced == 0")
+    	results = cur1.fetchall()
 
-        data_json = format(results).replace(" u'", "'").replace("'", "\"")
-        print "Number of records in the table " + table_name['name'] + ": "+ str(len(results))
+    	data_json = format(results).replace(" u'", "'").replace("'", "\"")
+    	print "Number of records in the table " + table_name['name'] + ": "+ str(len(results))
 
-        ## TODO add the board id in the json
-        data_json = "{ \"boardId\" : "+ BOARD_ID +", \"data\" : " + data_json + "}"
+    	## TODO add the board id in the json
+    	data_json = "{\"boardId\" : \""+ BOARD_ID +"\", \"data\" : " + data_json + "}"
 
-        tables_jsons[ table_name['name'] ] = data_json
+    	tables_jsons[ table_name['name'] ] = data_json
 
 	### generate and save JSON files with the table name for each of the database tables
 	# with open(outputPath + '/' + table_name['name']+'.json', 'a') as the_file:
@@ -235,10 +236,13 @@ def main():
     # but the fields will be different
     createDbTables( dbConnection )
 
+    arduino = None
+    arduinos = None
+
     try:
         # initialize the MCU object
-        arduino = FdsSS.FdsSensor(busId = 3)
-        arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
+        arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE)
+        # arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
     except Exception as e:
         print e
 
@@ -257,8 +261,6 @@ def main():
         ## reads N times before to sync the local db with the remote one
         for i in range(0, READ_CYCLES_BEFORE_SYNC):
             try:
-
-
                 # get data from Modbus devices
         	dataCC = chargeController.getChargeControllerData(None)
         	dataRB = chargeController.getRelayBoxData(None)
@@ -273,14 +275,14 @@ def main():
                 mcuData = dict()
 
                 # get Data from MCUs
-        	mcuData  = arduino.getMcuData(isDebug = IS_MCU_IN_DEBUG_MODE)
+                mcuData  = arduino.getMcuData()
 
                 ## dati dagli arduini effettivamente connessi
                 # TODO se c'e' errore ritorna None, non da eccezione
-                with eventlet.Timeout( 3 ):
-                    mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
-                    mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
-                    mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
+#                with eventlet.Timeout( 3 ):
+#                    mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
+#                    mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
+#                    mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
             except Exception as e:
                 print "ERRRORRRR:   Reading ARDUINOS: " + str(e)
 

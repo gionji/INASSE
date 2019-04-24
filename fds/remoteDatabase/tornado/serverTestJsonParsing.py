@@ -49,7 +49,11 @@ def addDataToDb(table_name, json_data):
     cur = dbConnection.cursor()
 
     json_decoded = json.loads(json_data)
-    obj_data = ast.literal_eval( json_decoded )
+    try:
+        obj_data = ast.literal_eval( json_decoded )
+    except Exception as e:
+        print json_decoded
+
 
     # get the board ID
     boardId = obj_data['boardId']
@@ -58,80 +62,16 @@ def addDataToDb(table_name, json_data):
 
     data_for_query = list()
 
-    if table_name == 'mcu':
-        for d in data:
-            data_for_query.append( tuple([boardId, 
-                                          d['temp1'], 
-                                          d['temp2'], 
-                                          d['pres1'], 
-                                          d['pres2'], 
-                                          d['pres3'], 
-                                          d['flux1'], 
-                                          d['flux2'], 
-                                          d['cc'], 
-                                          d['ac1'], 
-                                          d['ac2'],
-                                          d['timestamp']
-                                          ]))
-        query = "INSERT INTO " + table_name + " VALUES (NULL, ?, datetime('now'), ?, ?,   ?, ?, ?, ?, ?,  ?, ?, ?, ?)"
+    if table_name == FdsRDB.TABLE_CHARGECONTROLLER:
+        query, query_data = FdsRDB.addDataTableChargeController( boardId, data )
+    elif table_name == FdsRDB.TABLE_RELAYBOX:
+        query, query_data = FdsRDB.addDataTableRelayBox( boardId, data )
+    elif table_name == FdsRDB.TABLE_RELAYSTATE:
+        query, query_data = FdsRDB.addDataTableRelayState( boardId, data )
+    elif table_name == FdsRDB.TABLE_MCU:
+        query, query_data = FdsRDB.addDataTableMCU( boardId, data )
 
-    elif table_name == 'relay_box':
-        for d in data:
-            data_for_query.append( tuple([boardId, 
-                                          d['timestamp'],
-                                          d['adc_vb'], 
-                                          d['adc_vch_1'], 
-                                          d['adc_vch_2'], 
-                                          d['adc_vch_3'], 
-                                          d['adc_vch_4'], 
-                                          d['t_mod'], 
-                                          d['global_faults'], 
-                                          d['global_alarms'], 
-                                          d['hourmeter_HI'], 
-                                          d['hourmeter_LO'],
-                                          d['ch_faults_1'],
-                                          d['ch_faults_2'],
-                                          d['ch_faults_3'],
-                                          d['ch_faults_4'],
-                                          d['ch_alarms_1'],
-                                          d['ch_alarms_2'],
-                                          d['ch_alarms_3'],
-                                          d['ch_alarms_4']
-                                          ]))
-        query = "INSERT INTO " + table_name + " VALUES (NULL, ?, datetime('now'), ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,  ?, ?, ?, ?,  ?, ?, ? ,?, ?)"
-    elif table_name == 'relay_state': 
-        for d in data:
-            data_for_query.append( tuple([boardId,
-                                          d['timestamp'],
-                                          d['relay_1'],                                         
-                                          d['relay_2'],
-                                          d['relay_3']
-                                          ]))
-        query = "INSERT INTO " + table_name + " VALUES (NULL, ?, datetime('now'), ?, ?, ?,?)"
-    elif table_name == 'charge_controller':         
-        for d in data:
-            data_for_query.append( tuple([boardId,
-                                          d['timestamp'],
-                                          d['battsV'],
-                                          d['battsSensedV'],
-                                          d['battsI'],
-                                          d['arrayV'],
-                                          d['arrayI'],
-                                          d['statenum'],
-                                          d['hsTemp'],
-                                          d['rtsTemp'],
-                                          d['outPower'],
-                                          d['inPower'],
-                                          d['minVb_daily'],
-                                          d['maxVb_daily'],
-                                          d['minTb_daily'],
-                                          d['maxTb_daily'],
-                                          d['dipswitches']                       
-                                          ]))
-        query = "INSERT INTO " + table_name + " VALUES (NULL, ?, datetime('now'), ?, ?,   ?, ?, ?,?, ?,   ?, ?, ?, ?, ?,  ?, ?, ?, ?)"
-
-
-    cur.executemany(query, data_for_query)
+    cur.executemany(query, query_data)
 
     # commit
     dbConnection.commit()
@@ -139,12 +79,10 @@ def addDataToDb(table_name, json_data):
     # close connection
     dbConnection.close()
 
-    return None
 
 
 def saveJsonAsFile():
     return None
-
 
 
 
@@ -170,12 +108,12 @@ class McuHandler(tornado.web.RequestHandler):
 
     def post(self):
         json_data = self.request.body
-        
+
         # print json.dumps(data, indent=2, sort_keys=True)
         print "CC Data received: " + str( len(json_data) ) + " bytes."
 
         addDataToDb('mcu', json_data)
-        
+
         self.write("MCU Sync ok")
 
 

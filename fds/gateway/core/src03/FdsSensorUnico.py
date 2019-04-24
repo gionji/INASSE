@@ -51,10 +51,15 @@ ARDUINO_DOUBLE_SIZE = 8
 
 class FdsSensor():
 	bus = None
+	isDebug = False
 
-	def __init__(self, busId = UDOO_NEO_I2C_BUS):
+	def __init__(self, busId=None , isDebug=False):
 		#print("Called FdsSensor default constructor")
-		self.bus = smbus2.SMBus(busId)
+
+		self.isDebug = isDebug
+
+		if isDebug == False:
+			self.bus = smbus2.SMBus(busId)
 
 
 
@@ -186,11 +191,11 @@ class FdsSensor():
 
 
 
-	def getMcuData(self, isDebug=False):
-		data = dict()		
+	def getMcuData(self):
+		data = dict()
 		data['type'] = 'mcu'
 
-		if isDebug:
+		if self.isDebug:
 			data[ TEMP_1_LABEL ]          =   27.1
 	    	        data[ TEMP_2_LABEL ]          =   27.1
             		data[ PRESSURE_IN_LABEL ]     =   200.1
@@ -217,5 +222,5 @@ class FdsSensor():
 		except Exception as e:
 			return None
 		#	raise IOError('Unable to connect to ' + str(mcuType))
-		
+
 		return data
