@@ -4,8 +4,6 @@ from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 import random
 import logging
 
-
-
 MODBUS_RTU = 0x01
 MODBUS_ETH = 0x02
 
@@ -19,6 +17,7 @@ DEFAULT_C23_RS485              = '/dev/ttymxc2' # mxc3 on schematics
 # from pymodbus.client.sync import ModbusTcpClient
 
 
+
 class FdsChargeController():
 	comunicationType = ""
 	serialPort       = ""
@@ -26,13 +25,13 @@ class FdsChargeController():
 	modbusClient     = None
 	isDebug          = False
 
-	def __init__(self, communicationType, port, isDebug=False):
+	def __init__(self, communicationType, port=DEFAULT_C23_RS485, ipAddress=DEFAULT_CHARGE_CONTROLLER_IP, isDebug=False):
 
 		self.isDebug = isDebug
 
 		if (communicationType == MODBUS_ETH):
 			self.communicationType = communicationType
-			self.ipAddress = port
+			self.ipAddress = ipAddress
 			logging.debug("FdsChargeController: ETH enabled ")
 		elif (communicationType == MODBUS_RTU):
 			self.communicationType = communicationType

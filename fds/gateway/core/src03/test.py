@@ -24,6 +24,7 @@ SERVER_IP = '192.168.1.150' # R
 READ_CYCLES_BEFORE_SYNC = 4
 DELAY_BETWEEN_READINGS  = 1.0
 
+CHARGE_CONTROLLER_MODBUS_IP = '192.168.0.254'
 IS_MODBUS_IN_DEBUG_MODE = True
 IS_MCU_IN_DEBUG_MODE    = True
 
@@ -40,10 +41,9 @@ def createDbTables( dbConnection ):
 
     if cur is not None:
         cur.execute(FdsDB.sql_create_charge_controller_table)
-	cur.execute(FdsDB.sql_create_relaybox_table)
-	cur.execute(FdsDB.sql_create_relay_state_table)
-	logging.info("Charge controller tables created!")
-	cur.execute(FdsDB.sql_create_mcu_table)
+        cur.execute(FdsDB.sql_create_relaybox_table)
+        cur.execute(FdsDB.sql_create_relay_state_table)
+        cur.execute(FdsDB.sql_create_mcu_table)
     else:
 	print("Error! cannot create the database connection.")
 
@@ -206,6 +206,9 @@ def main():
 
     parser = ArgumentParser()
 
+    parser.add_argument('--boardname', '-b', action='store', default='fds-test-01',
+                   dest='boardname', type=str,
+                   help='Set the board name')
     parser.add_argument('--server', '-s', action='store', default='localhost',
                    dest='serverIp', type=str,
                    help='Set the remote server IP address')
@@ -218,15 +221,18 @@ def main():
 
     results = parser.parse_args()
 
-    global SERVER_IP, DELAY_BETWEEN_READINGS, READ_CYCLES_BEFORE_SYNC
+    global SERVER_IP, DELAY_BETWEEN_READINGS, READ_CYCLES_BEFORE_SYNC, BOARD_ID
 
+    BOARD_ID = str(results.boardname)
     SERVER_IP = str(results.serverIp)
     DELAY_BETWEEN_READINGS = results.delay
     READ_CYCLES_BEFORE_SYNC = results.cycles
 
+    print "BOARD_ID: " + str(BOARD_ID)
     print "server ip: " + str(SERVER_IP)
     print "delay: " + str(DELAY_BETWEEN_READINGS)
     print "cycles: " + str(READ_CYCLES_BEFORE_SYNC)
+    print ""
 
     ## connect to the local db: create a new file if doesn't exists
     dbConnection = sqlite3.connect( FdsDB.SQLITE_FILENAME )
@@ -250,7 +256,7 @@ def main():
         # ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
         # Se passo None va in modalita # DEBUG:
         # TODO: aggiustare questa cosa
-        chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, "192.168.0.1", isDebug = IS_MODBUS_IN_DEBUG_MODE )
+        chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, isDebug = IS_MODBUS_IN_DEBUG_MODE )
 
         # Fa solo finta adesso, non serve a una sega
         chargeController.connect()
@@ -277,12 +283,6 @@ def main():
                 # get Data from MCUs
                 mcuData  = arduino.getMcuData()
 
-                ## dati dagli arduini effettivamente connessi
-                # TODO se c'e' errore ritorna None, non da eccezione
-#                with eventlet.Timeout( 3 ):
-#                    mcuDataExt = arduinos.getMcuData(mcuType = FdsSS4Mcu.EXTERNAL)
-#                    mcuDataInt = arduinos.getMcuData(mcuType = FdsSS4Mcu.INTERNAL)
-#                    mcuDataHyd = arduinos.getMcuData(mcuType = FdsSS4Mcu.HYDRAULIC)
             except Exception as e:
                 print "ERRRORRRR:   Reading ARDUINOS: " + str(e)
 
