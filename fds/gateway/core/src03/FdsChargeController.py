@@ -25,7 +25,11 @@ class FdsChargeController():
 	modbusClient     = None
 	isDebug          = False
 
-	def __init__(self, communicationType, port=DEFAULT_C23_RS485, ipAddress=DEFAULT_CHARGE_CONTROLLER_IP, isDebug=False):
+	def __init__(self,
+				communicationType,
+				port=DEFAULT_C23_RS485,
+				ipAddress=DEFAULT_CHARGE_CONTROLLER_IP,
+				isDebug=False):
 
 		self.isDebug = isDebug
 

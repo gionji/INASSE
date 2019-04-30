@@ -14,13 +14,11 @@ def copyDbFileToUsbDrive():
 
 
 for device in iter(monitor.poll, None):
-    
-    # print ">>>>>>" + str(device.action)
-    
-    if device.action == 'add':
-        print('{} connected'.format(device))
-        
-        time.sleep(3)
+
+    print  str(device.action)
+
+    if device.action == 'bind':
+        print('>>>>>>>>>>>>>  {} connected'.format(device))
 
         removable = [device for device in context.list_devices(subsystem='block', DEVTYPE='disk') if device.attributes.asstring('removable') == "1"]
         for device in removable:
@@ -30,3 +28,4 @@ for device in iter(monitor.poll, None):
             for p in psutil.disk_partitions():
                 if p.device in partitions:
                     print("  {}: {}".format(p.device, p.mountpoint))
+					copyDbFileToUsbDrive()

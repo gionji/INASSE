@@ -1,3 +1,5 @@
+import FdsCommon as labels
+
 
 SQLITE_FILENAME = './DB_fds_offgridbox.sqlite'
 
@@ -109,73 +111,138 @@ sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu (
 ### SQLITE QUERIES TO INSERT DATA
 
 insert_mcu = """
-		INSERT INTO mcu (
-			id,
-			temp1,
-			temp2,
-			pres1,
-			pres2,
-			pres3,
-	                flux1,
-        	        flux2,
-            		cc,
-                        ac1,
-                        ac2,
-                        timestamp
-		) VALUES (
-			NULL,
-			:temp1,
-			:temp2,
-			:pres1,
-			:pres2,
-			:pres3,
-            	        :flux1,
-            		:flux2,
-            		:cc,
-            		:ac1,
-            		:ac2,
-            		datetime('now')
-		);
+            INSERT INTO mcu (
+            id,
+            temp1,
+            temp2,
+            pres1,
+            pres2,
+            pres3,
+            flux1,
+            flux2,
+            cc,
+            ac1,
+            ac2,
+            timestamp
+        ) VALUES (
+            NULL,
+            :temp1,
+            :temp2,
+            :pres1,
+            :pres2,
+            :pres3,
+            :flux1,
+            :flux2,
+            :cc,
+            :ac1,
+            :ac2,
+            datetime('now')
+        );
              """
 
 
 insert_relay_box = """
             INSERT INTO relay_box (
-              id, ch_alarms_3, hourmeter_LO,
-              ch_faults_1, ch_alarms_1,
-              ch_faults_3, ch_faults_2, ch_alarms_4, ch_faults_4, hourmeter_HI,
-              adc_vb, adc_vch_4, adc_vch_1, adc_vch_2, adc_vch_3,
-              t_mod, global_faults, global_alarms, ch_alarms_2 , timestamp
+              id,
+              ch_alarms_3,
+              hourmeter_LO,
+              ch_faults_1,
+              ch_alarms_1,
+              ch_faults_3,
+              ch_faults_2,
+              ch_alarms_4,
+              ch_faults_4,
+              hourmeter_HI,
+              adc_vb,
+              adc_vch_4,
+              adc_vch_1,
+              adc_vch_2,
+              adc_vch_3,
+              t_mod,
+              global_faults,
+              global_alarms,
+              ch_alarms_2 ,
+              timestamp
               )
             VALUES (
-              NULL, :ch_alarms_3, :hourmeter_LO, :ch_faults_1, :ch_alarms_1,
-              :ch_faults_3, :ch_faults_2, :ch_alarms_4, :ch_faults_4, :hourmeter_HI,
-              :adc_vb, :adc_vch_4, :adc_vch_1, :adc_vch_2, :adc_vch_3,
-              :t_mod, :global_faults, :global_alarms, :ch_alarms_2, datetime('now')
+              NULL,
+              :ch_alarms_3,
+              :hourmeter_LO,
+              :ch_faults_1,
+              :ch_alarms_1,
+              :ch_faults_3,
+              :ch_faults_2,
+              :ch_alarms_4,
+              :ch_faults_4,
+              :hourmeter_HI,
+              :adc_vb,
+              :adc_vch_4,
+              :adc_vch_1,
+              :adc_vch_2,
+              :adc_vch_3,
+              :t_mod,
+              :global_faults,
+              :global_alarms,
+              :ch_alarms_2,
+              datetime('now')
               );
             """
 
 insert_charge_controller = """
             INSERT INTO charge_controller (
-               id, outPower, minTb_daily, dipswitches,
-               arrayV, minVb_daily, arrayI, battsSensedV,
-               statenum, maxTb_daily, battsI, battsV, rtsTemp,
-               inPower, maxVb_daily, hsTemp, timestamp
+               id,
+               outPower,
+               minTb_daily,
+               dipswitches,
+               arrayV,
+               minVb_daily,
+               arrayI,
+               battsSensedV,
+               statenum,
+               maxTb_daily,
+               battsI,
+               battsV,
+               rtsTemp,
+               inPower,
+               maxVb_daily,
+               hsTemp,
+               timestamp
                )
             VALUES (
-              NULL, :outPower, :minTb_daily, :dipswitches,
-              :arrayV, :minVb_daily, :arrayI, :battsSensedV,
-              :statenum, :maxTb_daily, :battsI, :battsV, :rtsTemp,
-              :inPower, :maxVb_daily, :hsTemp, datetime('now')
+              NULL,
+              :outPower,
+              :minTb_daily,
+              :dipswitches,
+              :arrayV,
+              :minVb_daily,
+              :arrayI,
+              :battsSensedV,
+              :statenum,
+              :maxTb_daily,
+              :battsI,
+              :battsV,
+              :rtsTemp,
+              :inPower,
+              :maxVb_daily,
+              :hsTemp,
+              datetime('now')
               );
             """
 
 insert_relay_state = """
                      INSERT INTO relay_state (
-                        id, relay_1, relay_2, relay_3, timestamp
+                        id,
+                        relay_1,
+                        relay_2,
+                        relay_3,
+                        timestamp
                         )
                      VALUES (
-                        NULL, :relay_1, :relay_2, :relay_3, datetime('now')
+                        NULL,
+                        :relay_1,
+                        :relay_2,
+                        :relay_3,
+                        datetime('now')
                         );
                      """
 
