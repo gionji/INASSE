@@ -25,8 +25,8 @@ READ_CYCLES_BEFORE_SYNC = 4
 DELAY_BETWEEN_READINGS  = 1.0
 
 CHARGE_CONTROLLER_MODBUS_IP = '192.168.0.254'
-IS_MODBUS_IN_DEBUG_MODE = True
-IS_MCU_IN_DEBUG_MODE	= True
+IS_MODBUS_IN_DEBUG_MODE = False
+IS_MCU_IN_DEBUG_MODE	= False
 
 BOARD_ID = "fds-neo-lab01"
 I2C_BUS = None # If none no real arduino are connected
@@ -204,10 +204,10 @@ def main():
 
 	parser = ArgumentParser()
 
-	parser.add_argument('--mcu-debug', action='store_true',
+	parser.add_argument('--mcu-debug', action='store_true', default=False,
 				   dest='mcuDebug',
 				   help='Tha Modbus is in debug mode. It provides dummy data without access the Ethernet or RS485. To test in local machines.')
-	parser.add_argument('--modbus-debug', action='store_true',
+	parser.add_argument('--modbus-debug', action='store_true', default=False,
 				   dest='modbusDebug',
 				   help='The Arduino is in debug mode. It provides dummy data without access the I2C channel. To test in local machines.')
 
@@ -231,10 +231,10 @@ def main():
 				   dest='modbusIp', type=str,
 				   help='Set the Charge Controller IP address')
 	parser.add_argument('--modbus-serial-port', action='store', default='/dev/ttymxc2',
-				   dest='modbusIp', type=str,
+				   dest='modbusPort', type=str,
 				   help='Set the Charge Controller RS485 Serial port')
 
-	parser.set_defaults(mcuDebug=False, modbusDebug=False)
+	
 
 	results = parser.parse_args()
 
@@ -248,13 +248,14 @@ def main():
 	IS_MODBUS_IN_DEBUG_MODE = results.modbusDebug
 	IS_MCU_IN_DEBUG_MODE	= results.mcuDebug
 
+
 	print "BOARD_ID: " + str(BOARD_ID)
 	print "server ip: " + str(SERVER_IP)
 	print "delay: " + str(DELAY_BETWEEN_READINGS)
 	print "cycles: " + str(READ_CYCLES_BEFORE_SYNC)
-	if IS_MODBUS_IN_DEBUG_MODE:
+	if IS_MODBUS_IN_DEBUG_MODE == True:
 		print "Modbus is in debug mode"
-	if IS_MODBUS_IN_DEBUG_MODE:
+	if IS_MCU_IN_DEBUG_MODE == True:
 		print "Arduino is in debug mode"
 	print ""
 
@@ -271,7 +272,7 @@ def main():
 
 	try:
 		# initialize the MCU object
-		arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE)
+		arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE, busId = 3) 
 		# arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
 	except Exception as e:
 		print e

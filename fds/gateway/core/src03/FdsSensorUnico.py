@@ -53,7 +53,7 @@ class FdsSensor():
 	bus = None
 	isDebug = False
 
-	def __init__(self, busId=None , isDebug=False):
+	def __init__(self,busId, isDebug=False):
 		#print("Called FdsSensor default constructor")
 
 		self.isDebug = isDebug
@@ -156,9 +156,9 @@ class FdsSensor():
 		logging.debug("Requested AC current from clamp ", str(channel))
 
 		if channel == 1:
-			AC_CURRENT = AC1_CURRENT
+			AC_CURRENT_REGISTER = AC1_CURRENT_REGISTER
 		elif channel == 2:
-			AC_CURRENT = AC2_CURRENT
+			AC_CURRENT_REGISTER = AC2_CURRENT_REGISTER
 		else:
 			return -1
 
@@ -220,6 +220,7 @@ class FdsSensor():
 			data[ AC1_CURRENT_LABEL ]             =   self.getAcCurrent(1)
 			data[ AC2_CURRENT_LABEL ]             =   self.getAcCurrent(2)
 		except Exception as e:
+			print e
 			return None
 		#	raise IOError('Unable to connect to ' + str(mcuType))
 
