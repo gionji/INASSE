@@ -18,8 +18,11 @@ import FdsDbConstants	  as FdsDB
 # lo uso per test sul cartone, visto che ora gli schetch sono quelli vecchi a 4 MCU
 import FdsSensorUnico4mcu  as FdsSS4Mcu
 
+##############################################3
+MCU_MAX_ATTEMPTS = 5
+REMOTE_SYNC_TIMEOUT = 5
 
-######################################################33
+
 SERVER_IP = 'localhost' # R
 READ_CYCLES_BEFORE_SYNC = 4
 DELAY_BETWEEN_READINGS  = 1.0
@@ -83,19 +86,22 @@ def dict_factory(cursor, row):
 
 def sendRequestToServer(table_name, data, timeout):
 
-	with eventlet.Timeout( timeout ):
-		headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-		payload = json.dumps(data)
-		r = requests.post("http://"+ SERVER_IP +":8888/sync/" + str(table_name), data=payload, headers=headers)
+	headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+	payload = json.dumps(data)
+	
+	timer = eventlet.Timeout(timeout, Exception("Timeout exception syncing table " + table_name) )
 
-		response = r.content
-		# print response
+	try:
+		r = requests.post("http://"+ SERVER_IP +":8888/sync/" + str(table_name), 
+				data=payload, 
+				headers=headers)
+	finally:
+		timer.cancel()
 
-		### if response is ok 200  <Response [200]>
-		# empty the db or sign it as synced
+	response = r.content
+	# print response
 
-		#print("Response " + table_name, r)
-		return r
+	return r
 
 
 
@@ -184,18 +190,23 @@ def markAsSynced(tableName):
 		conn.close()
 
 
-def syncronizeDb(remoteAddress, machineName):
+def syncronizeDb(remoteAddress, machineName, timeout):
 		json_tables = getDbTablesJson(FdsDB.SQLITE_FILENAME, 'jsons')
 
 		for table_name, value in json_tables.iteritems():
-			print("synching table " + table_name)
+			print("\nSynching table " + table_name)
 			try:
-				r = sendRequestToServer(table_name, value, timeout=3)
+				r = sendRequestToServer(table_name, value, timeout=timeout)
 				markAsSynced(table_name)
 			except Exception as e:
 				print "Error sync DB:" + str( e )
 
-		print "Syncronize db. Mo ce provamo"
+		print "Syncronize completer"
+
+
+def resetMcu(boardType):
+	# https://github.com/smerkousdavid/Neo.GPIO
+	return 0
 
 
 
@@ -224,15 +235,15 @@ def main():
 				   dest='cycles', type=int,
 				   help='Set the number of cycles after you syncronize the remote database (cycles)')
 
-	parser.add_argument('--i2c-channel', '-i', action='store', default=3,
+	parser.add_argument('--i2c-channel', '-i', action='store', 
 				   dest='i2cChannel', type=int,
 				   help='Set the i2c channel: \n1 SBC-23 \n3 UDOO NEO ')
-	parser.add_argument('--modbus-ip', action='store', default='192.168.0.253',
-				   dest='modbusIp', type=str,
-				   help='Set the Charge Controller IP address')
-	parser.add_argument('--modbus-serial-port', action='store', default='/dev/ttymxc2',
-				   dest='modbusPort', type=str,
-				   help='Set the Charge Controller RS485 Serial port')
+#	parser.add_argument('--modbus-ip', action='store', default='192.168.0.253',
+#				   dest='modbusIp', type=str,
+#				   help='Set the Charge Controller IP address')
+#	parser.add_argument('--modbus-serial-port', action='store', default='/dev/ttymxc2',
+#				   dest='modbusPort', type=str,
+#				   help='Set the Charge Controller RS485 Serial port')
 
 	
 
@@ -240,6 +251,7 @@ def main():
 
 	## PArse the parameters and set the global variables
 	global SERVER_IP, DELAY_BETWEEN_READINGS, READ_CYCLES_BEFORE_SYNC, IS_MODBUS_IN_DEBUG_MODE, IS_MCU_IN_DEBUG_MODE
+	global BUS_I2C
 
 	BOARD_ID = str(results.boardname)
 	SERVER_IP = str(results.serverIp)
@@ -247,8 +259,10 @@ def main():
 	READ_CYCLES_BEFORE_SYNC = results.cycles
 	IS_MODBUS_IN_DEBUG_MODE = results.modbusDebug
 	IS_MCU_IN_DEBUG_MODE	= results.mcuDebug
+	BUS_I2C = results.i2cChannel
 
-
+	## Print configuaration parameters
+	print "------------------- Configuration parms -------------------------"
 	print "BOARD_ID: " + str(BOARD_ID)
 	print "server ip: " + str(SERVER_IP)
 	print "delay: " + str(DELAY_BETWEEN_READINGS)
@@ -257,7 +271,11 @@ def main():
 		print "Modbus is in debug mode"
 	if IS_MCU_IN_DEBUG_MODE == True:
 		print "Arduino is in debug mode"
-	print ""
+
+	print "i2c channel: " + str(BUS_I2C)
+
+	print "-----------------------------------------------------------------"
+	
 
 	## connect to the local db: create a new file if doesn't exists
 	dbConnection = sqlite3.connect( FdsDB.SQLITE_FILENAME )
@@ -272,7 +290,7 @@ def main():
 
 	try:
 		# initialize the MCU object
-		arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE, busId = 3) 
+		arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE, busId = BUS_I2C) 
 		# arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
 	except Exception as e:
 		print e
@@ -290,8 +308,14 @@ def main():
 		print e
 
 	while True:
+		
+		print "\n ---------------- Batch"
+
 		## reads N times before to sync the local db with the remote one
 		for i in range(0, READ_CYCLES_BEFORE_SYNC):
+				
+			print "Sensors reading " + str( i )
+			
 			try:
 				# get data from Modbus devices
 				### >>>>>> None == DBUG <<<<<<<<<
@@ -305,13 +329,15 @@ def main():
 				# initialize the data structure for MCU data
 				mcuData = dict()
 
-				# get Data from MCUs
-				mcuData  = arduino.getMcuData()
-
-				if(mcuData == None):
-					print("Arduino Error: MCU not connected!!")
-					raise Exception("MCU not connected")
-
+				## get Data from MCUs
+				for attempt in range(0, MCU_MAX_ATTEMPTS):
+					mcuData  = arduino.getMcuData()
+					if(mcuData == None):
+						print("I2C read attempt " + str(attempt) + ": FAIL")
+					else:
+						print("I2C read attempt " + str(attempt) + ": OK")
+						break
+						
 			except Exception as e:
 				print "READING ARDUINOS ERROR: " + str(e)
 				print e
@@ -323,12 +349,11 @@ def main():
 					dataRS,
 					mcuData)
 
-			print "Data saved. Cycle: " + str(i)
 
 			time.sleep(DELAY_BETWEEN_READINGS)
 
 		## syncronize data
-		syncronizeDb( FdsDB.SQLITE_FILENAME, BOARD_ID )
+		syncronizeDb( FdsDB.SQLITE_FILENAME, BOARD_ID, REMOTE_SYNC_TIMEOUT )
 
 
 

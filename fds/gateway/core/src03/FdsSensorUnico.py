@@ -54,7 +54,6 @@ class FdsSensor():
 	isDebug = False
 
 	def __init__(self,busId, isDebug=False):
-		#print("Called FdsSensor default constructor")
 
 		self.isDebug = isDebug
 
