@@ -33,6 +33,7 @@ IS_MCU_IN_DEBUG_MODE	= False
 
 BOARD_ID = "fds-neo-lab01"
 I2C_BUS = None # If none no real arduino are connected
+BOARD_TYPE = None
 #######################################################
 
 
@@ -204,9 +205,34 @@ def syncronizeDb(remoteAddress, machineName, timeout):
 		print "Syncronize completer"
 
 
-def resetMcu(boardType):
-	# https://github.com/smerkousdavid/Neo.GPIO
-	return 0
+def resetMcu(boardType, resetPin):
+	
+	if boardType == "NEO":
+	
+		gpios = [
+			"178", "179", "104", "143", "142", "141", "140", "149", "105", "148",
+		 	"146", "147", "100", "102", "102", "106", "106", "107", "180", "181",
+		 	"172", "173", "182", "124",  "25",  "22",  "14",  "15",  "16",  "17",
+	         	"18",   "19",  "20",  "21", "203", "202", "177", "176", "175", "174",
+	         	"119", "124", "127", "116",   "7",   "6",   "5",   "4"]
+
+		gpio = gpios[resetPin];
+		
+
+	elif boardType == "C23":
+		gpio = resetPin
+		with open("/sys/class/gpio/export", "w") as create:
+                        create.write(gpio)
+	try:
+		with open("/sys/class/gpio/gpio" + gpio + "/direction", "w") as re:
+			re.write("out")
+		with open("/sys/class/gpio/gpio" + gpio + "/value", "w") as writes:
+			writes.write("0")
+			time.sleep(1.0)
+			writes.write("1")
+	except Exception as e:
+		print e
+	
 
 
 
@@ -238,7 +264,7 @@ def main():
 	parser.add_argument('--i2c-channel', '-i', action='store', 
 				   dest='i2cChannel', type=int,
 				   help='Set the i2c channel: \n1 SBC-23 \n3 UDOO NEO ')
-#	parser.add_argument('--modbus-ip', action='store', default='192.168.0.253',
+#	parser.add_argument('--modbus-ip', action='store', default='192.168.0.254',
 #				   dest='modbusIp', type=str,
 #				   help='Set the Charge Controller IP address')
 #	parser.add_argument('--modbus-serial-port', action='store', default='/dev/ttymxc2',
@@ -251,7 +277,7 @@ def main():
 
 	## PArse the parameters and set the global variables
 	global SERVER_IP, DELAY_BETWEEN_READINGS, READ_CYCLES_BEFORE_SYNC, IS_MODBUS_IN_DEBUG_MODE, IS_MCU_IN_DEBUG_MODE
-	global BUS_I2C
+	global BUS_I2C, BOARD_TYPE
 
 	BOARD_ID = str(results.boardname)
 	SERVER_IP = str(results.serverIp)
@@ -260,19 +286,24 @@ def main():
 	IS_MODBUS_IN_DEBUG_MODE = results.modbusDebug
 	IS_MCU_IN_DEBUG_MODE	= results.mcuDebug
 	BUS_I2C = results.i2cChannel
+	if BUS_I2C == 1:
+		BOARD_TYPE = "C23"
+	elif BUS_I2C == 3:
+		BOARD_TYPE = "NEO"
 
 	## Print configuaration parameters
 	print "------------------- Configuration parms -------------------------"
-	print "BOARD_ID: " + str(BOARD_ID)
+	print "BOARD_ID: "  + str(BOARD_ID)
 	print "server ip: " + str(SERVER_IP)
-	print "delay: " + str(DELAY_BETWEEN_READINGS)
-	print "cycles: " + str(READ_CYCLES_BEFORE_SYNC)
+	print "delay: "     + str(DELAY_BETWEEN_READINGS) + " seconds"
+	print "cycles: "    + str(READ_CYCLES_BEFORE_SYNC)
 	if IS_MODBUS_IN_DEBUG_MODE == True:
 		print "Modbus is in debug mode"
 	if IS_MCU_IN_DEBUG_MODE == True:
 		print "Arduino is in debug mode"
 
 	print "i2c channel: " + str(BUS_I2C)
+	print "board type: " + str(BOARD_TYPE)
 
 	print "-----------------------------------------------------------------"
 	
@@ -337,6 +368,10 @@ def main():
 					else:
 						print("I2C read attempt " + str(attempt) + ": OK")
 						break
+				
+				if(mcuData == None):	
+					print "MCU RESET: MCU i2c probably stuck!"
+					resetMcu("NEO", 39) 
 						
 			except Exception as e:
 				print "READING ARDUINOS ERROR: " + str(e)
