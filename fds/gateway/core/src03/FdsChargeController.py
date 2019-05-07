@@ -25,11 +25,13 @@ class FdsChargeController():
 	modbusClient     = None
 	isDebug          = False
 
+	client = None
+
 	def __init__(self,
-				communicationType,
-				port=DEFAULT_C23_RS485,
-				ipAddress=DEFAULT_CHARGE_CONTROLLER_IP,
-				isDebug=False):
+		communicationType,
+		port=DEFAULT_C23_RS485,
+		ipAddress=DEFAULT_CHARGE_CONTROLLER_IP,
+		isDebug=False):
 
 		self.isDebug = isDebug
 
@@ -45,25 +47,24 @@ class FdsChargeController():
 			raise ValueError("Unsupported Modbus Communication Type. Choose MODBUS_RTU or MODBUS_ETH.")
 
 
-
 	def connect(self):
 		if(self.communicationType == MODBUS_ETH):
 			logging.debug("FdsChargeController: connect EHT called")
+
+			if self.isDebug == False:
+			    	print "Trying to connect to Modbus IP Host %s ..." % host
+			    	self.client = ModbusClient(self.ipAddress, MODBUS_PORT)
+			    	self.client.connect()
+		
 		elif (self.communicationType == MODBUS_RTU):
-			logging.debug("FdsChargeController: connect RTU called")
-
-		if self.isDebug == False:
-			for host in hosts:
-		    		print "Trying to connect to Modbus IP Host %s ..." % host
-		    		client = ModbusClient(host, fds.MODBUS_PORT)
-		    		client.connect()
+                        logging.debug("FdsChargeController: connect RTU called")
 
 
 
-	def getChargeControllerData(self, client):
+	def getChargeControllerData(self):
 		data = {'type':'chargecontroller'}
 
-		if client != None:
+		if self.client != None:
 			try:
 				# read registers. Start at 0 for convenience
 				rr = client.read_holding_registers(0,80, unit=CHARGE_CONTROLLER_UNIT)
@@ -125,10 +126,10 @@ class FdsChargeController():
 
 
 
-	def getRelayBoxData(self, client):
+	def getRelayBoxData(self):
 		data = {'type':'relaybox'}
 
-		if client != None:
+		if self.client != None:
 			try:
 				# read registers. Start at 0 for convenience
 				rr = client.read_holding_registers(0,18, unit=RELAYBOX_UNIT)
@@ -182,9 +183,9 @@ class FdsChargeController():
 
 
 
-	def getRelayBoxState(self, client):
+	def getRelayBoxState(self):
 		data = {'type':'relayState'}
-		if client != None:
+		if self.client != None:
 			try:
 				rr = client.read_coils(0, 8, unit=RELAYBOX_UNIT)
 				data["relay_1"]   = rr.bits[0]
