@@ -20,7 +20,7 @@ import FdsSensorUnico4mcu  as FdsSS4Mcu
 
 ##############################################3
 MCU_MAX_ATTEMPTS = 5
-REMOTE_SYNC_TIMEOUT = 5
+REMOTE_SYNC_TIMEOUT = 10
 
 DB_SYNC_ENABLED = False
 
@@ -92,12 +92,12 @@ def sendRequestToServer(table_name, data, timeout):
 
 	headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 	payload = json.dumps(data)
-	
+
 	timer = eventlet.Timeout(timeout, Exception("Timeout exception syncing table " + table_name) )
 
 	try:
-		r = requests.post("http://"+ SERVER_IP +":8888/sync/" + str(table_name), 
-				data=payload, 
+		r = requests.post("http://"+ SERVER_IP +":8888/sync/" + str(table_name),
+				data=payload,
 				headers=headers)
 	finally:
 		timer.cancel()
@@ -209,23 +209,22 @@ def syncronizeDb(remoteAddress, machineName, timeout):
 
 
 def resetMcu(boardType, resetPin):
-	
+
 	if boardType == "NEO":
-	
+
 		gpios = [
 			"178", "179", "104", "143", "142", "141", "140", "149", "105", "148",
 		 	"146", "147", "100", "102", "102", "106", "106", "107", "180", "181",
 		 	"172", "173", "182", "124",  "25",  "22",  "14",  "15",  "16",  "17",
-	         	"18",   "19",  "20",  "21", "203", "202", "177", "176", "175", "174",
-	         	"119", "124", "127", "116",   "7",   "6",   "5",   "4"]
+			"18",   "19",  "20",  "21", "203", "202", "177", "176", "175", "174",
+			"119", "124", "127", "116",   "7",   "6",   "5",   "4"]
 
 		gpio = gpios[resetPin];
-		
 
 	elif boardType == "C23":
 		gpio = resetPin
 		with open("/sys/class/gpio/export", "w") as create:
-                        create.write(gpio)
+			create.write(gpio)
 	try:
 		with open("/sys/class/gpio/gpio" + gpio + "/direction", "w") as re:
 			re.write("out")
@@ -235,7 +234,7 @@ def resetMcu(boardType, resetPin):
 			writes.write("1")
 	except Exception as e:
 		print e
-	
+
 
 
 
@@ -244,53 +243,93 @@ def main():
 
 	parser = ArgumentParser()
 
-	parser.add_argument('--mcu-debug', action='store_true', default=False,
-				   dest='mcuDebug',
-				   help='Tha Modbus is in debug mode. It provides dummy data without access the Ethernet or RS485. To test in local machines.')
-	parser.add_argument('--modbus-debug', action='store_true', default=False,
-				   dest='modbusDebug',
-				   help='The Arduino is in debug mode. It provides dummy data without access the I2C channel. To test in local machines.')
+	parser.add_argument('--mcu-debug',
+						action='store_true',
+						default=False,
+						dest='mcuDebug',
+						help='Tha Modbus is in debug mode. It provides dummy data without access the Ethernet or RS485. To test in local machines.')
 
-	parser.add_argument('--board-name', '-b', action='store', default='fds-test-01',
-				   dest='boardname', type=str,
-				   help='Set the board name')
-	parser.add_argument('--server-addr', '-s', action='store', # default='localhost',
-				   dest='serverIp', type=str,
-				   help='Set the remote server IP address')
-	parser.add_argument('--delay', '-d', action='store', default=2,
-				   dest='delay', type=int,
-				   help='Set the delay between sensors readings (seconds) ')
-	parser.add_argument('--sync-cycles', '-c', action='store', default=5,
-				   dest='cycles', type=int,
-				   help='Set the number of cycles after you syncronize the remote database (cycles)')
+	parser.add_argument('--modbus-debug',
+						action='store_true',
+						default=False,
+						dest='modbusDebug',
+						help='The Arduino is in debug mode. It provides dummy data without access the I2C channel. To test in local machines.')
 
-	parser.add_argument('--i2c-channel', '-i', action='store', 
-				   dest='i2cChannel', type=int,
-				   help='Set the i2c channel: \n1 SBC-23 \n3 UDOO NEO ')
+	parser.add_argument('--board-name',
+						'-b',
+						action='store',
+						default='fds-test-01',
+						dest='boardname', type=str,
+						help='Set the board name')
 
-#	parser.add_argument('--modbus-ip', action='store', default='192.168.0.254',
-#				   dest='modbusIp', type=str,
-#				   help='Set the Charge Controller IP address')
+	parser.add_argument('--server-addr',
+						'-s',
+						action='store',
+						dest='serverIp',
+						type=str,
+						help='Set the remote server IP address')
+
+	parser.add_argument('--delay',
+						'-d',
+						action='store',
+						default=2,
+						dest='delay', type=int,
+						help='Set the delay between sensors readings (seconds) ')
+	parser.add_argument('--sync-cycles',
+						'-c',
+						action='store',
+						default=5,
+						dest='cycles',
+						type=int,
+						help='Set the number of cycles after you syncronize the remote database (cycles)')
+
+	parser.add_argument('--i2c-channel',
+						'-i',
+						action='store',
+						dest='i2cChannel',
+						type=int,
+						help='Set the i2c channel: \n1 SBC-23 \n3 UDOO NEO ')
+
+	parser.add_argument('--modbus-ip',
+						action='store',
+						default='192.168.0.254',
+						dest='modbusIp',
+						type=str,
+						help='Set the Charge Controller IP address')
+
 #	parser.add_argument('--modbus-serial-port', action='store', default='/dev/ttymxc2',
 #				   dest='modbusPort', type=str,
 #				   help='Set the Charge Controller RS485 Serial port')
 
-#       parser.add_argument('--timeout', '-t', action='store', default=10,
-#                                   dest='timeout', type=int,
-#                                   help='Set the sync post request timeout  (seconds) ')
-#        parser.add_argument('--i2c-max-attempts', action='store', default=5,
-#                                   dest='i2cMaxAttempts', type=int,
-#                                   help='Set the max number of attempts reading i2c before to send reset signal to mcu ')
+	parser.add_argument('--timeout',
+						'-t',
+						action='store',
+						default=10,
+						dest='timeout',
+						type=int,
+						help='Set the sync post request timeout  (seconds) ')
 
-#        parser.add_argument('--reset-pin', action='store', default=5,
-#                                   dest='resetPin', type=int,
-#                                   help='Set the reset gpio number ')
+	parser.add_argument('--i2c-max-attempts',
+						action='store',
+						default=5,
+						dest='i2cMaxAttempts',
+						type=int,
+						help='Set the max number of attempts reading i2c before to send reset signal to mcu ')
+
+	parser.add_argument('--reset-pin',
+						action='store',
+						default=5,
+						dest='resetPin',
+						type=int,
+						help='Set the reset gpio number ')
 
 	results = parser.parse_args()
 
-	## PArse the parameters and set the global variables
-	global SERVER_IP, DELAY_BETWEEN_READINGS, READ_CYCLES_BEFORE_SYNC, IS_MODBUS_IN_DEBUG_MODE, IS_MCU_IN_DEBUG_MODE
-	global BUS_I2C, BOARD_TYPE, DB_SYNC_ENABLED
+	## Parse the parameters and set the global variables
+	global SERVER_IP, DELAY_BETWEEN_READINGS, READ_CYCLES_BEFORE_SYNC
+	global IS_MODBUS_IN_DEBUG_MODE, IS_MCU_IN_DEBUG_MODE
+	global BUS_I2C, BOARD_TYPE, DB_SYNC_ENABLED, MCU_MAX_ATTEMPTS
+	global REMOTE_SYNC_TIMEOUT, CHARGE_CONTROLLER_MODBUS_IP
 
 	BOARD_ID                = str(results.boardname)
 	SERVER_IP               = str(results.serverIp)
@@ -298,33 +337,51 @@ def main():
 	READ_CYCLES_BEFORE_SYNC = results.cycles
 	IS_MODBUS_IN_DEBUG_MODE = results.modbusDebug
 	IS_MCU_IN_DEBUG_MODE	= results.mcuDebug
-	BUS_I2C = results.i2cChannel
+	BUS_I2C                 = results.i2cChannel
+	MCU_MAX_ATTEMPTS        = results.i2cMaxAttempts
+	REMOTE_SYNC_TIMEOUT     = results.timeout
+
 	if BUS_I2C == 1:
 		BOARD_TYPE = "C23"
 	elif BUS_I2C == 3:
 		BOARD_TYPE = "NEO"
 
+	if CHARGE_CONTROLLER_MODBUS_IP == 'None':
+		IS_MODBUS_IN_DEBUG_MODE = True
+	else:
+		IS_MODBUS_IN_DEBUG_MODE = False
+
+
 	## Print configuaration parameters
 	print "------------------- Configuration parms -------------------------"
 	print "BOARD_ID: "  + str(BOARD_ID)
+
 	if SERVER_IP != 'None':
 		print "Database sync enabled. Server ip: " + str(SERVER_IP)
 		DB_SYNC_ENABLED = True
 	else:
 		print "Database sync disabled"
 		DB_SYNC_ENABLED = False
+
 	print "delay: "     + str(DELAY_BETWEEN_READINGS) + " seconds"
 	print "cycles: "    + str(READ_CYCLES_BEFORE_SYNC)
+
 	if IS_MODBUS_IN_DEBUG_MODE == True:
 		print "Modbus disabled"
+	else:
+		print "Modbus enabled on IP: " + str(CHARGE_CONTROLLER_MODBUS_IP)
+
 	if IS_MCU_IN_DEBUG_MODE == True:
 		print "MCU disabled"
 
-	print "i2c channel: " + str(BUS_I2C)
-	print "board type: " + str(BOARD_TYPE)
+	print "i2c channel: "         + str(BUS_I2C)
+	print "board type: "          + str(BOARD_TYPE)
+
+	print "MCU max attempts: "    + str(MCU_MAX_ATTEMPTS)
+	print "Remote sync timeout: " + str(REMOTE_SYNC_TIMEOUT)
 
 	print "-----------------------------------------------------------------"
-	
+
 
 	## connect to the local db: create a new file if doesn't exists
 	dbConnection = sqlite3.connect( FdsDB.SQLITE_FILENAME )
@@ -339,7 +396,7 @@ def main():
 
 	try:
 		# initialize the MCU object
-		arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE, busId = BUS_I2C) 
+		arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE, busId = BUS_I2C)
 		# arduinos = FdsSS4Mcu.FdsSensor(busId = 3)
 	except Exception as e:
 		print e
@@ -357,14 +414,14 @@ def main():
 		print e
 
 	while True:
-		
+
 		print "\n ---------------- Batch"
 
 		## reads N times before to sync the local db with the remote one
 		for i in range(0, READ_CYCLES_BEFORE_SYNC):
-				
+
 			print "Sensors reading " + str( i )
-			
+
 			try:
 				# get data from Modbus devices
 				### >>>>>> None == DBUG <<<<<<<<<
@@ -386,11 +443,11 @@ def main():
 					else:
 						print("I2C read attempt " + str(attempt) + ": OK")
 						break
-				
-				if(mcuData == None):	
+
+				if(mcuData == None):
 					print "MCU RESET: MCU i2c probably stuck!"
-					resetMcu("NEO", 39) 
-						
+					resetMcu("NEO", 39)
+
 			except Exception as e:
 				print "READING ARDUINOS ERROR: " + str(e)
 				print e
@@ -405,7 +462,6 @@ def main():
 					dataRB,
 					dataRS,
 					mcuData)
-
 
 			time.sleep(DELAY_BETWEEN_READINGS)
 
