@@ -52,7 +52,7 @@ class FdsChargeController():
 			logging.debug("FdsChargeController: connect EHT called")
 
 			if self.isDebug == False:
-			    	print "Trying to connect to Modbus IP Host %s ..." % host
+			    	print("Trying to connect to Modbus IP Host %s ..." % self.ipAddress)
 			    	self.client = ModbusClient(self.ipAddress, MODBUS_PORT)
 			    	self.client.connect()
 		
@@ -67,7 +67,7 @@ class FdsChargeController():
 		if self.client != None:
 			try:
 				# read registers. Start at 0 for convenience
-				rr = client.read_holding_registers(0,80, unit=CHARGE_CONTROLLER_UNIT)
+				rr = self.client.read_holding_registers(0,80, unit=CHARGE_CONTROLLER_UNIT)
 
 				# for all indexes, subtract 1 from what's in the manual
 				V_PU_hi = rr.registers[0]
@@ -132,7 +132,7 @@ class FdsChargeController():
 		if self.client != None:
 			try:
 				# read registers. Start at 0 for convenience
-				rr = client.read_holding_registers(0,18, unit=RELAYBOX_UNIT)
+				rr = self.client.read_holding_registers(0,18, unit=RELAYBOX_UNIT)
 				v_scale = float(78.421 * 2**(-15))
 
 				data["adc_vb"]        = rr.registers[0] * v_scale
@@ -187,7 +187,7 @@ class FdsChargeController():
 		data = {'type':'relayState'}
 		if self.client != None:
 			try:
-				rr = client.read_coils(0, 8, unit=RELAYBOX_UNIT)
+				rr = self.client.read_coils(0, 8, unit=RELAYBOX_UNIT)
 				data["relay_1"]   = rr.bits[0]
 				data["relay_2"]   = rr.bits[1]
 				data["relay_3"]   = rr.bits[2]

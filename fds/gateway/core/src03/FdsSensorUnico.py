@@ -219,8 +219,6 @@ class FdsSensor():
 			data[ AC1_CURRENT_LABEL ]             =   self.getAcCurrent(1)
 			data[ AC2_CURRENT_LABEL ]             =   self.getAcCurrent(2)
 		except Exception as e:
-			print e
-			return None
-		#	raise IOError('Unable to connect to ' + str(mcuType))
+			raise IOError('Unable to connect to MCU:' + str(e))
 
 		return data
