@@ -20,7 +20,7 @@ import FdsDbConstants	  as FdsDB
 
 
 ############# DEFAULTS ####################################
-DEFAULT_MODBUS_IP = '192.168.0.253'
+DEFAULT_MODBUS_IP = '192.168.2.253'
 DEFAULT_READ_CYCLES_BEFORE_SYNC = 4
 DEFAULT_DELAY_BETWEEN_READINGS = 3.0
 
@@ -469,9 +469,11 @@ def main():
 
 			if(mcuData == None):
 				print("MCU RESET: MCU i2c probably stuck!")
-				resetMcu( BOARD_TYPE, RESET_PIN )
+				#resetMcu( BOARD_TYPE, RESET_PIN )
 				
 			printData("MCU", mcuData)
+			printData("CC", dataCC)
+			printData("RB", dataRB)
 
 			## save data to local sqlite db
 			saveDataToDb( dbConnection,
