@@ -230,12 +230,21 @@ def resetMcu(boardType, resetPin):
 		try:
 			with open("/sys/class/pwm/pwmchip4/export", "w") as pwm:
 				pwm.write("0")
+		except Exception as e:
+			print(e)
+
 		try:
 			with open("/sys/class/pwm/pwmchip4/pwm0/period", "w") as pwm:
 				pwm.write("100")
+		except Exception as e:
+			print(e)
+
 		try:
 			with open("/sys/class/pwm/pwmchip4/pwm0/duty_cycle", "w") as pwm:
 				pwm.write("50")
+		except Exception as e:
+			print(e)
+
 		try:
 			with open("/sys/class/pwm/pwmchip4/pwm0/enable", "w") as pwm:
 				pwm.write("0")
