@@ -443,6 +443,10 @@ def main():
 
 	print("-----------------------------------------------------------------")
 
+	if not IS_MCU_IN_DEBUG_MODE:
+		print("MCU reset!!")
+		resetMcu( BOARD_TYPE, RESET_PIN )
+
 	time.sleep(5)
 
 
@@ -514,7 +518,7 @@ def main():
 
 			if(mcuData == None):
 				print("MCU RESET: MCU i2c probably stuck!")
-				#resetMcu( BOARD_TYPE, RESET_PIN )
+				resetMcu( BOARD_TYPE, RESET_PIN )
 
 			if PRINT.find('m'):
 				printData("MCU", mcuData)
