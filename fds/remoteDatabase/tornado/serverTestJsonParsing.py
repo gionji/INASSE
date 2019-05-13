@@ -11,6 +11,7 @@ import json
 import logging
 import sqlite3
 import ast
+import datetime
 
 import FdsRdbConstants as FdsRDB
 
@@ -110,7 +111,7 @@ class McuHandler(tornado.web.RequestHandler):
         json_data = self.request.body
 
         # print json.dumps(data, indent=2, sort_keys=True)
-        print "CC Data received: " + str( len(json_data) ) + " bytes."
+        print(str(datetime.datetime.now() + " CC Data received: " + str( len(json_data) ) + " bytes.")
 
         addDataToDb('mcu', json_data)
 
@@ -125,7 +126,7 @@ class ChargeControllerHandler(tornado.web.RequestHandler):
         json_data = self.request.body
         addDataToDb('charge_controller', json_data)
 
-        print "CC Data received: " + str( len(json_data) ) + " bytes."
+        print(str(datetime.datetime.now() +  " CC Data received: " + str( len(json_data) ) + " bytes.")
         ## print the readed json PRETTY
         #print json.dumps(data, indent=2, sort_keys=True)
         self.write("CC Sync ok")
@@ -140,7 +141,7 @@ class RelayBoxHandler(tornado.web.RequestHandler):
         json_data = self.request.body
         addDataToDb('relay_box', json_data)
 
-        print "RB Data received: " + str( len(json_data) ) + " bytes."
+        print(str(datetime.datetime.now() + " RB Data received: " + str( len(json_data) ) + " bytes.")
 
         ## print the readed json PRETTY
         # print json.dumps(data, indent=2, sort_keys=True)
@@ -156,7 +157,7 @@ class RelayStateHandler(tornado.web.RequestHandler):
         json_data = self.request.body
         addDataToDb('relay_state', json_data)
 
-        print "RS Data received: " + str( len(json_data) ) + " bytes."
+        print(str(datetime.datetime.now() + " RS Data received: " + str( len(json_data) ) + " bytes.")
 
         ## print the readed json PRETTY
         #print json.dumps(data, indent=2, sort_keys=True)

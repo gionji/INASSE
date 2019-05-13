@@ -135,7 +135,7 @@ def printLocalDbTables(dbName):
 
 
 
-def getDbTablesJson(dbName):
+def getDbTablesJson(dbName, boardId):
 	# connect to the SQlite databases
 	connection = sqlite3.connect( dbName )
 	connection.row_factory = dict_factory
@@ -165,7 +165,7 @@ def getDbTablesJson(dbName):
 		#print "Number of records in the table " + table_name['name'] + ": "+ str(len(results))
 
 		## TODO add the board id in the json
-		data_json = "{\"boardId\": \""+ BOARD_ID +"\",\"data\": " + data_json + "}"
+		data_json = "{\"boardId\": \""+ boardId +"\",\"data\": " + data_json + "}"
 
 		tables_jsons[ table_name['name'] ] = data_json
 
@@ -189,7 +189,7 @@ def markAsSynced(dbName, tableName):
 
 
 def syncronizeDb(remoteServerAddress, dbName, boardId, timeout):
-		json_tables = getDbTablesJson(dbName, 'jsons')
+		json_tables = getDbTablesJson(dbName, boardId)
 
 		for tableName, tableData in json_tables.items():
 			print("\nSynching table " + tableName)
@@ -265,12 +265,12 @@ def printData(name, data):
 
 def getBoardId():
 	try:
-		with open("/sys/fsl_otp/HW_OCOTP_CFG0", "w") as reader:
+		with open("/sys/fsl_otp/HW_OCOTP_CFG0", "r") as reader:
 			id0 = reader.read()
-		with open("/sys/fsl_otp/HW_OCOTP_CFG1", "w") as reader:
+		with open("/sys/fsl_otp/HW_OCOTP_CFG1", "r") as reader:
 			id1 = reader.read()
 
-		id = "fds-"str(id1) + str(id0)
+		id = "fds-" + str(id1[2:10]) + str(id0[2:10])
 	except Exception as e:
 		print(e)
 		id = "fds-unknown"
@@ -375,8 +375,9 @@ def main():
 	parser.add_argument('--print-data',
 						'-p',
 						action='store',
-						dest='print',
-						type=str
+						dest='prints',
+						type=str,
+						default='',
 						help='m=MCU, r=RELAY_BOX, s=RELAY_STATE, c=CHARGE CONTROLLER'
 						)
 
@@ -394,7 +395,7 @@ def main():
 	MCU_MAX_ATTEMPTS        = results.i2cMaxAttempts
 	REMOTE_SYNC_TIMEOUT     = results.timeout
 	MODBUS_IP               = results.modbusIp
-	PRINT                   = results.print
+	PRINT                   = results.prints
 
 	if BUS_I2C == 1:
 		BOARD_TYPE = "C23"
@@ -529,14 +530,17 @@ def main():
 				print("MCU RESET: MCU i2c probably stuck!")
 				resetMcu( BOARD_TYPE, RESET_PIN )
 
-			if PRINT.find('m'):
+			print("PRINT :"  +PRINT)
+
+
+			if 'm' in PRINT:
 				printData("MCU", mcuData)
-			if PRINT.find('c'):
+			if 'c' in PRINT:
 				printData("CC", dataCC)
-			if PRINT.find('r'):
+			if 'r' in PRINT:
 				printData("RB", dataRB)
-			if PRINT.find('s'):
-				printData("RS", DEFAULT_READ_CYCLES_BEFORE_SYNC)
+			if 's' in PRINT:
+				printData("RS", dataRS)
 
 			## save data to local sqlite db
 			saveDataToDb( dbConnection,
