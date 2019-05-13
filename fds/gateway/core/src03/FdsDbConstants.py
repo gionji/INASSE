@@ -1,7 +1,7 @@
 import FdsCommon as labels
 
 
-SQLITE_FILENAME = './DB_fds_offgridbox.sqlite'
+SQLITE_FILENAME = 'DB_fds_offgridbox.sqlite'
 
 
  # Define the State list

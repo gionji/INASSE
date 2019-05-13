@@ -31,6 +31,8 @@ DEFAULT_RESET_GPIO_NEO = 39
 DEFAULT_RESET_GPIO_C23 = 149
 
 DEFAULT_REMOTE_SERVER_IP = 'localhost'
+DEFAULT_DATABASE_PATH_C23 = '/www/'
+DEFAULT_DATABASE_PATH_NEO = './'
 #DEFAULT_REMOTE_SERVER_URL = "http://"+ SERVER_IP +":8888/sync/"
 
 
@@ -122,7 +124,7 @@ def printLocalDbTables(dbName):
 		# tablName = table_name[0]['name']
 		logging.debug('Exporting ' + str(table_name['name']) + ' to json')
 
-		conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
+		conn = sqlite3.connect( dbName )
 		conn.row_factory = dict_factory
 
 		cur1 = conn.cursor()
@@ -133,7 +135,7 @@ def printLocalDbTables(dbName):
 
 
 
-def getDbTablesJson(dbName, outputPath):
+def getDbTablesJson(dbName):
 	# connect to the SQlite databases
 	connection = sqlite3.connect( dbName )
 	connection.row_factory = dict_factory
@@ -152,7 +154,7 @@ def getDbTablesJson(dbName, outputPath):
 
 		logging.debug('Exporting ' + str(table_name['name']) + ' to json')
 
-		conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
+		conn = sqlite3.connect( dbName )
 		conn.row_factory = dict_factory
 
 		cur1 = conn.cursor()
@@ -167,17 +169,13 @@ def getDbTablesJson(dbName, outputPath):
 
 		tables_jsons[ table_name['name'] ] = data_json
 
-	### generate and save JSON files with the table name for each of the database tables
-	# with open(outputPath + '/' + table_name['name']+'.json', 'a') as the_file:
-	#	the_file.write(format(results).replace(" u'", "'").replace("'", "\""))
-
 	connection.close()
 
 	return tables_jsons
 
 
-def markAsSynced(tableName):
-		conn = sqlite3.connect( FdsDB.SQLITE_FILENAME )
+def markAsSynced(dbName, tableName):
+		conn = sqlite3.connect( dbName )
 		cur1 = conn.cursor()
 		sync_query = "UPDATE "+ tableName + " SET "+ "synced = 1" # WHERE synced == 0"
 		cur1.execute( sync_query )
@@ -190,14 +188,14 @@ def markAsSynced(tableName):
 		conn.close()
 
 
-def syncronizeDb(remoteAddress, machineName, timeout):
-		json_tables = getDbTablesJson(FdsDB.SQLITE_FILENAME, 'jsons')
+def syncronizeDb(remoteServerAddress, dbName, boardId, timeout):
+		json_tables = getDbTablesJson(dbName, 'jsons')
 
-		for table_name, value in json_tables.iteritems():
-			print("\nSynching table " + table_name)
+		for tableName, tableData in json_tables.items():
+			print("\nSynching table " + tableName)
 			try:
-				r = sendRequestToServer(table_name, value, timeout=timeout )
-				markAsSynced(table_name)
+				r = sendRequestToServer(remoteServerAddress, tableName, tableData, timeout=timeout )
+				markAsSynced(dbName, tableName)
 			except Exception as e:
 				print("Error sync DB:" + str( e ))
 
@@ -206,31 +204,45 @@ def syncronizeDb(remoteAddress, machineName, timeout):
 
 def resetMcu(boardType, resetPin):
 
-	if boardType == "NEO":
-
+	if (boardType == "NEO"):
 		gpios = [
 			"178", "179", "104", "143", "142", "141", "140", "149", "105", "148",
-		 	"146", "147", "100", "102", "102", "106", "106", "107", "180", "181",
-		 	"172", "173", "182", "124",  "25",  "22",  "14",  "15",  "16",  "17",
+			"146", "147", "100", "102", "102", "106", "106", "107", "180", "181",
+			"172", "173", "182", "124",  "25",  "22",  "14",  "15",  "16",  "17",
 			"18",   "19",  "20",  "21", "203", "202", "177", "176", "175", "174",
 			"119", "124", "127", "116",   "7",   "6",   "5",   "4"]
 
-		gpio = gpios[resetPin];
+		gpio = gpios[resetPin]
 
+		try:
+			with open("/sys/class/gpio/gpio" + gpio + "/direction", "w") as re:
+				re.write("out")
+			with open("/sys/class/gpio/gpio" + gpio + "/value", "w") as writes:
+				writes.write("0")
+				time.sleep(1.0)
+				writes.write("1")
+				time.sleep(1.0)
+		except Exception as e:
+				print(e)
+
+	# for C23 we use PWM
 	elif boardType == "C23":
-		gpio = resetPin
-		with open("/sys/class/gpio/export", "w") as create:
-			create.write(gpio)
-	try:
-		with open("/sys/class/gpio/gpio" + gpio + "/direction", "w") as re:
-			re.write("out")
-		with open("/sys/class/gpio/gpio" + gpio + "/value", "w") as writes:
-			writes.write("0")
-			time.sleep(1.0)
-			writes.write("1")
-			time.sleep(1.0)
-	except Exception as e:
-		print(e)
+		try:
+			with open("/sys/class/pwm/pwmchip4/export", "w") as pwm:
+				pwm.write("0")
+		try:
+			with open("/sys/class/pwm/pwmchip4/pwm0/period", "w") as pwm:
+				pwm.write("100")
+		try:
+			with open("/sys/class/pwm/pwmchip4/pwm0/duty_cycle", "w") as pwm:
+				pwm.write("50")
+		try:
+			with open("/sys/class/pwm/pwmchip4/pwm0/enable", "w") as pwm:
+				pwm.write("0")
+				time.sleep(1.0)
+				pwm.write("1")
+		except Exception as e:
+			print(e)
 
 
 
@@ -242,9 +254,28 @@ def printData(name, data):
 		print('\n')
 
 
+def getBoardId():
+	try:
+		with open("/sys/fsl_otp/HW_OCOTP_CFG0", "w") as reader:
+			id0 = reader.read()
+		with open("/sys/fsl_otp/HW_OCOTP_CFG1", "w") as reader:
+			id1 = reader.read()
+
+		id = "fds-"str(id1) + str(id0)
+	except Exception as e:
+		print(e)
+		id = "fds-unknown"
+
+
+	return id
+
+
+
 
 def main():
 	print("INASSE OffGridBox v0.2")
+
+	DATABASE_PATH = '/www/'
 
 	parser = ArgumentParser()
 
@@ -263,10 +294,9 @@ def main():
 	parser.add_argument('--board-name',
 						'-b',
 						action='store',
-						dest='boardname', 
+						dest='boardname',
 						type=str,
-						required=True,
-						nargs=1,
+						default=getBoardId(),
 						help='Set the board name')
 
 	parser.add_argument('--server-addr',
@@ -280,9 +310,10 @@ def main():
 						'-d',
 						action='store',
 						default=DEFAULT_DELAY_BETWEEN_READINGS,
-						dest='delay', 
+						dest='delay',
 						type=int,
 						help='Set the delay between sensors readings (seconds) ')
+
 	parser.add_argument('--sync-cycles',
 						'-c',
 						action='store',
@@ -296,8 +327,8 @@ def main():
 						action='store',
 						dest='i2cChannel',
 						type=int,
-                                                required=True,
-                                                nargs=1,
+						required=True,
+						nargs=1,
 						help='Set the i2c channel: \n1 SBC-23 \n3 UDOO NEO ')
 
 	parser.add_argument('--modbus-ip',
@@ -332,6 +363,14 @@ def main():
 						type=int,
 						help='Set the reset gpio number ')
 
+	parser.add_argument('--print-data',
+						'-p',
+						action='store',
+						dest='print',
+						type=str
+						help='m=MCU, r=RELAY_BOX, s=RELAY_STATE, c=CHARGE CONTROLLER'
+						)
+
 	results = parser.parse_args()
 
 	## Parse the parameters and set the global variables
@@ -346,24 +385,28 @@ def main():
 	MCU_MAX_ATTEMPTS        = results.i2cMaxAttempts
 	REMOTE_SYNC_TIMEOUT     = results.timeout
 	MODBUS_IP               = results.modbusIp
+	PRINT                   = results.print
 
 	if BUS_I2C == 1:
 		BOARD_TYPE = "C23"
 		RESET_PIN = DEFAULT_RESET_GPIO_C23
+		DATABASE_PATH = DEFAULT_DATABASE_PATH_C23
 	elif BUS_I2C == 3:
 		BOARD_TYPE = "NEO"
 		RESET_PIN = DEFAULT_RESET_GPIO_NEO
+		DATABASE_PATH = DEFAULT_DATABASE_PATH_NEO
 
 	if results.resetPin != None:
-                RESET_PIN = results.resetPin
+		RESET_PIN = results.resetPin
 
 #	if MODBUS_IP == None:
 #		IS_MODBUS_IN_DEBUG_MODE = True
 #	else:
 #		IS_MODBUS_IN_DEBUG_MODE = False
 
-	
 	REMOTE_SERVER_URL = "http://"+ SERVER_IP +":8888/sync/"
+
+	DATABASE = DATABASE_PATH + FdsDB.SQLITE_FILENAME
 
 
 	## Print configuaration parameters
@@ -396,14 +439,16 @@ def main():
 
 	print("Reset pin " + str(RESET_PIN))
 
-	print("-----------------------------------------------------------------")
+	print("Database " + str(DATABASE))
 
+	print("-----------------------------------------------------------------")
 
 	time.sleep(5)
 
 
+
 	## connect to the local db: create a new file if doesn't exists
-	dbConnection = sqlite3.connect( FdsDB.SQLITE_FILENAME )
+	dbConnection = sqlite3.connect( DATABASE )
 
 	## create tables in sqlite DB if dont exists
 	# PAY ATTENTION: if chenged the db structure, it wont recreate the db
@@ -454,7 +499,7 @@ def main():
 
 			## get Data from MCUs
 			for attempt in range(0, MCU_MAX_ATTEMPTS):
-				
+
 				# initialize the data structure for MCU da
 				mcuData = dict()
 
@@ -465,15 +510,20 @@ def main():
 				except Exception as e:
 					mcuData = None
 					print("I2C read attempt " + str(attempt) + ": FAIL  " + str(e))
-					
+
 
 			if(mcuData == None):
 				print("MCU RESET: MCU i2c probably stuck!")
 				#resetMcu( BOARD_TYPE, RESET_PIN )
-				
-			printData("MCU", mcuData)
-			printData("CC", dataCC)
-			printData("RB", dataRB)
+
+			if PRINT.find('m'):
+				printData("MCU", mcuData)
+			if PRINT.find('c'):
+				printData("CC", dataCC)
+			if PRINT.find('r'):
+				printData("RB", dataRB)
+			if PRINT.find('s'):
+				printData("RS", DEFAULT_READ_CYCLES_BEFORE_SYNC)
 
 			## save data to local sqlite db
 			saveDataToDb( dbConnection,
@@ -482,11 +532,11 @@ def main():
 					dataRS,
 					mcuData)
 
-			time.sleep(DELAY_BETWEEN_READINGS)
+			time.sleep( DELAY_BETWEEN_READINGS )
 
 		## syncronize data
 		if DB_SYNC_ENABLED:
-			syncronizeDb( REMOTE_SERVER_URL, FdsDB.SQLITE_FILENAME, BOARD_ID, REMOTE_SYNC_TIMEOUT )
+			syncronizeDb( REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT )
 
 
 
