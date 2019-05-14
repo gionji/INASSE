@@ -15,6 +15,16 @@ import datetime
 
 import FdsRdbConstants as FdsRDB
 
+LOG_FILE_PATH = './serverLog.log'
+
+
+def loggamelo(string):
+    print(str(string))
+    with open( LOG_FILE_PATH, "a") as myfile:
+        myfile.write( str(string) )
+
+
+
 def initializeDatabase( databaseFilename ):
     ## open the db
     logging.info("Opening DB connection ")
@@ -55,7 +65,6 @@ def addDataToDb(table_name, json_data):
     except Exception as e:
         print json_decoded
 
-
     # get the board ID
     boardId = obj_data['boardId']
     recordsNumber = len(obj_data['data'])
@@ -80,10 +89,7 @@ def addDataToDb(table_name, json_data):
     # close connection
     dbConnection.close()
 
-
-
-def saveJsonAsFile():
-    return None
+    return boardId, recordsNumber
 
 
 
@@ -109,11 +115,11 @@ class McuHandler(tornado.web.RequestHandler):
 
     def post(self):
         json_data = self.request.body
+        boardId, numberOfRecords = addDataToDb('mcu', json_data)
 
         # print json.dumps(data, indent=2, sort_keys=True)
-        print(str(datetime.datetime.now()) + " CC Data received: " + str( len(json_data) ) + " bytes.")
+        print( "\n" + str(datetime.datetime.now()) + " - " + str(boardId) + " - MCU Data received: " + str( len(json_data) ) + " bytes. Records " + str(numberOfRecords))
 
-        addDataToDb('mcu', json_data)
 
         self.write("MCU Sync ok")
 
@@ -124,9 +130,9 @@ class ChargeControllerHandler(tornado.web.RequestHandler):
 
     def post(self):
         json_data = self.request.body
-        addDataToDb('charge_controller', json_data)
+        boardId, numberOfRecords = addDataToDb('charge_controller', json_data)
 
-        print(str(datetime.datetime.now()) +  " CC Data received: " + str( len(json_data) ) + " bytes.")
+        print( "\n" + str(datetime.datetime.now()) + " - " + str(boardId) + " - CC Data received: " + str( len(json_data) ) + " bytes. Records " + str(numberOfRecords))
         ## print the readed json PRETTY
         #print json.dumps(data, indent=2, sort_keys=True)
         self.write("CC Sync ok")
@@ -139,9 +145,9 @@ class RelayBoxHandler(tornado.web.RequestHandler):
 
     def post(self):
         json_data = self.request.body
-        addDataToDb('relay_box', json_data)
+        boardId, numberOfRecords = addDataToDb('relay_box', json_data)
 
-        print(str(datetime.datetime.now()) + " RB Data received: " + str( len(json_data) ) + " bytes.")
+        print( "\n" + str(datetime.datetime.now()) + " - " + str(boardId) + " - RB Data received: " + str( len(json_data) ) + " bytes. Records " + str(numberOfRecords))
 
         ## print the readed json PRETTY
         # print json.dumps(data, indent=2, sort_keys=True)
@@ -155,9 +161,9 @@ class RelayStateHandler(tornado.web.RequestHandler):
 
     def post(self):
         json_data = self.request.body
-        addDataToDb('relay_state', json_data)
+        boardId, numberOfRecords = addDataToDb('relay_state', json_data)
 
-        print(str(datetime.datetime.now()) + " RS Data received: " + str( len(json_data) ) + " bytes.")
+        print( "\n" + str(datetime.datetime.now()) + " - " + str(boardId) + " - RS Data received: " + str( len(json_data) ) + " bytes. Records " + str(numberOfRecords))
 
         ## print the readed json PRETTY
         #print json.dumps(data, indent=2, sort_keys=True)

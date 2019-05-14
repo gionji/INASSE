@@ -423,9 +423,6 @@ def main():
 #	else:
 #		IS_MODBUS_IN_DEBUG_MODE = False
 
-	print(">>>>> SERVER IP:" + str(SERVER_IP))
-	print(">>>>> SERVER ADDR:" + str(SERVER_ADDR))
-
 
 	if SERVER_IP != None:
 		DB_SYNC_ENABLED = True
@@ -453,7 +450,7 @@ def main():
 		print("\nDatabase address manullay specified. Server ip: " + str(SERVER_IP) + " overwritten!")
 		print("Server address is: " + str( REMOTE_SERVER_URL ))
 
-	if not DB_SYNC_ENABLED:	
+	if not DB_SYNC_ENABLED:
 		print("Remote database sync disabled!!")
 
 
@@ -484,7 +481,9 @@ def main():
 		print("MCU reset!!")
 		resetMcu( BOARD_TYPE, RESET_PIN )
 
-	time.sleep(5)
+	for i in range(0, 10):
+		print('. ', end='', flush=True)
+		time.sleep(0.5)
 
 
 
@@ -556,9 +555,6 @@ def main():
 			if(mcuData == None):
 				print("MCU RESET: MCU i2c probably stuck!")
 				resetMcu( BOARD_TYPE, RESET_PIN )
-
-			print("PRINT :"  +PRINT)
-
 
 			if 'm' in PRINT:
 				printData("MCU", mcuData)
