@@ -248,8 +248,10 @@ def resetMcu(boardType, resetPin):
 		try:
 			with open("/sys/class/pwm/pwmchip4/pwm0/enable", "w") as pwm:
 				pwm.write("0")
+				pwm.flush()
 				time.sleep(1.0)
 				pwm.write("1")
+				pwm.flush()
 		except Exception as e:
 			print(e)
 
@@ -481,7 +483,7 @@ def main():
 		print("MCU reset!!")
 		resetMcu( BOARD_TYPE, RESET_PIN )
 
-	for i in range(0, 10):
+	for i in range(0, 6):
 		print('. ', end='', flush=True)
 		time.sleep(0.5)
 
@@ -506,8 +508,6 @@ def main():
 
 	try:
 		# ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
-		# Se passo None va in modalita # DEBUG:
-		# TODO: aggiustare questa cosa
 		chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, isDebug = IS_MODBUS_IN_DEBUG_MODE )
 
 		# Fa solo finta adesso, non serve a una sega
@@ -516,30 +516,34 @@ def main():
 	except Exception as e:
 		print(e)
 
+
 	while True:
-
-		print("\n ---------------- Batch")
-
 		## reads N times before to sync the local db with the remote one
 		for i in range(0, READ_CYCLES_BEFORE_SYNC):
 
 			print("Sensors reading " + str( i ))
 
 			try:
-				## get data from Modbus devices
 				dataCC = chargeController.getChargeControllerData()
-				dataRB = chargeController.getRelayBoxData()
-				dataRS = chargeController.getRelayBoxState()
 			except Exception as e:
 				dataCC = None
+				print("READING MODBUS CC: " + str(e))
+
+			try:
+				dataRB = chargeController.getRelayBoxData()
+			except Exception as e:
 				dataRB = None
+				print("READING MODBUS RB: " + str(e))
+
+			try:
+				dataRS = chargeController.getRelayBoxState()
+			except Exception as e:
 				dataRS = None
-				print("READING MODBUS ERROR: " + str(e))
+				print("READING MODBUS RS: " + str(e))
 
 
 			## get Data from MCUs
 			for attempt in range(0, MCU_MAX_ATTEMPTS):
-
 				# initialize the data structure for MCU da
 				mcuData = dict()
 
@@ -555,6 +559,7 @@ def main():
 			if(mcuData == None):
 				print("MCU RESET: MCU i2c probably stuck!")
 				resetMcu( BOARD_TYPE, RESET_PIN )
+
 
 			if 'm' in PRINT:
 				printData("MCU", mcuData)
