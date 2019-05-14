@@ -423,6 +423,9 @@ def main():
 #	else:
 #		IS_MODBUS_IN_DEBUG_MODE = False
 
+	print(">>>>> SERVER IP:" + str(SERVER_IP))
+	print(">>>>> SERVER ADDR:" + str(SERVER_ADDR))
+
 
 	if SERVER_IP != None:
 		DB_SYNC_ENABLED = True
@@ -433,7 +436,8 @@ def main():
 		REMOTE_SERVER_URL = SERVER_ADDR
 		DB_SYNC_ENABLED = True
 	else:
-		REMOTE_SERVER_URL = "http://"+ SERVER_IP +":8888/sync/"
+		if DB_SYNC_ENABLED:
+			REMOTE_SERVER_URL = "http://"+ SERVER_IP +":8888/sync/"
 
 
 
@@ -442,13 +446,15 @@ def main():
 	print("BOARD_ID: "  + str(BOARD_ID))
 
 	if SERVER_IP != None:
-		print("Database sync enabled. Server address: " + str(SERVER_ADDR))
-	else:
-		print("Database sync disabled")
+		print("Database sync enabled. Server ip: " + str(SERVER_IP))
+		print("Full server address: " + str(REMOTE_SERVER_URL))
 
 	if SERVER_ADDR != None:
 		print("\nDatabase address manullay specified. Server ip: " + str(SERVER_IP) + " overwritten!")
-		print("Server address is: " + str( SERVER_ADDR ))
+		print("Server address is: " + str( REMOTE_SERVER_URL ))
+
+	if not DB_SYNC_ENABLED:	
+		print("Remote database sync disabled!!")
 
 
 	print("delay: "     + str(DELAY_BETWEEN_READINGS) + " seconds")
