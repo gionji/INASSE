@@ -308,12 +308,18 @@ def main():
 						default=getBoardId(),
 						help='Set the board name')
 
-	parser.add_argument('--server-addr',
+	parser.add_argument('--server-ip',
 						'-s',
 						action='store',
 						dest='serverIp',
 						type=str,
-						help='Set the remote server IP address')
+						help='Set the remote server IP ')
+
+	parser.add_argument('--server-addr',
+						action='store',
+						dest='serverAddr',
+						type=str,
+						help='Set the full remote server address. It will override the option --server-ip / -s')
 
 	parser.add_argument('--delay',
 						'-d',
@@ -386,7 +392,7 @@ def main():
 	## Parse the parameters and set the global variables
 
 	BOARD_ID                = str(results.boardname)
-	SERVER_IP               = str(results.serverIp)
+	SERVER_IP               = results.serverIp
 	DELAY_BETWEEN_READINGS  = results.delay
 	READ_CYCLES_BEFORE_SYNC = results.cycles
 	IS_MODBUS_IN_DEBUG_MODE = results.modbusDebug
@@ -396,6 +402,7 @@ def main():
 	REMOTE_SYNC_TIMEOUT     = results.timeout
 	MODBUS_IP               = results.modbusIp
 	PRINT                   = results.prints
+	SERVER_ADDR             = results.serverAddr
 
 	if BUS_I2C == 1:
 		BOARD_TYPE = "C23"
@@ -409,26 +416,40 @@ def main():
 	if results.resetPin != None:
 		RESET_PIN = results.resetPin
 
+	DATABASE = DATABASE_PATH + FdsDB.SQLITE_FILENAME
+
 #	if MODBUS_IP == None:
 #		IS_MODBUS_IN_DEBUG_MODE = True
 #	else:
 #		IS_MODBUS_IN_DEBUG_MODE = False
 
-	REMOTE_SERVER_URL = "http://"+ SERVER_IP +":8888/sync/"
 
-	DATABASE = DATABASE_PATH + FdsDB.SQLITE_FILENAME
+	if SERVER_IP != None:
+		DB_SYNC_ENABLED = True
+	else:
+		DB_SYNC_ENABLED = False
+
+	if SERVER_ADDR != None:
+		REMOTE_SERVER_URL = SERVER_ADDR
+		DB_SYNC_ENABLED = True
+	else:
+		REMOTE_SERVER_URL = "http://"+ SERVER_IP +":8888/sync/"
+
 
 
 	## Print configuaration parameters
 	print("------------------- Configuration parms -------------------------")
 	print("BOARD_ID: "  + str(BOARD_ID))
 
-	if SERVER_IP != 'None':
-		print("Database sync enabled. Server ip: " + str(SERVER_IP))
-		DB_SYNC_ENABLED = True
+	if SERVER_IP != None:
+		print("Database sync enabled. Server address: " + str(SERVER_ADDR))
 	else:
 		print("Database sync disabled")
-		DB_SYNC_ENABLED = False
+
+	if SERVER_ADDR != None:
+		print("\nDatabase address manullay specified. Server ip: " + str(SERVER_IP) + " overwritten!")
+		print("Server address is: " + str( SERVER_ADDR ))
+
 
 	print("delay: "     + str(DELAY_BETWEEN_READINGS) + " seconds")
 	print("cycles: "    + str(READ_CYCLES_BEFORE_SYNC))
