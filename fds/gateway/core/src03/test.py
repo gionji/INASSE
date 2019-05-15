@@ -241,7 +241,7 @@ def resetMcu(boardType, resetPin):
 
 		try:
 			with open("/sys/class/pwm/pwmchip4/pwm0/duty_cycle", "w") as pwm:
-				pwm.write("50")
+				pwm.write("100")
 		except Exception as e:
 			print(e)
 
