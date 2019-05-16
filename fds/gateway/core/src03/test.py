@@ -22,7 +22,10 @@ import FdsDbConstants	  as FdsDB
 IS_RUNNING = True
 IS_PAUSED = False
 
-REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT
+REMOTE_SERVER_URL = None
+DATABASE = None
+BOARD_ID = None
+REMOTE_SYNC_TIMEOUT = None
 
 COMMAND_INPUT_FILE = './fdscmd'
 
@@ -293,7 +296,7 @@ def processCommand(inputFile):
 		file.truncate(0)
 		file.flush()
 
-		global IS_RUNNING, PAUSED
+		global IS_RUNNING, IS_PAUSED
 
 		if 'pause' in line:
 			IS_PAUSED = True
@@ -303,11 +306,11 @@ def processCommand(inputFile):
 			print('SYSTEM RESTART')
 		if 'quit' in line:
 			IS_RUNNING = False
-		if 'remote-sync':
+		if 'remote-sync' in line:
+			print("Manually request remote sync")
 			syncronizeDb( REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT )
 
-
-
+		
 
 def main():
 	print("INASSE OffGridBox v0.2")
@@ -545,7 +548,7 @@ def main():
 
 		if not IS_PAUSED:
 
-			print("Sensors reading " + str( i ))
+			print("Sensors reading " + str( cycle ))
 
 			try:
 				dataCC = chargeController.getChargeControllerData()
@@ -604,6 +607,7 @@ def main():
 
 			time.sleep( DELAY_BETWEEN_READINGS )
 
+			
 			## syncronize data
 			if cycle == READ_CYCLES_BEFORE_SYNC:
 				cycle = 0
