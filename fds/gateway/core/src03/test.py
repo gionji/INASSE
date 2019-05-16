@@ -19,6 +19,13 @@ import FdsDbConstants	  as FdsDB
 #import FdsSensorUnico4mcu  as FdsSS4Mcu
 
 
+IS_RUNNING = True
+IS_PAUSED = False
+
+REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT
+
+COMMAND_INPUT_FILE = './fdscmd'
+
 ############# DEFAULTS ####################################
 DEFAULT_MODBUS_IP = '192.168.2.253'
 DEFAULT_READ_CYCLES_BEFORE_SYNC = 4
@@ -277,8 +284,27 @@ def getBoardId():
 		print(e)
 		id = "fds-unknown"
 
-
 	return id
+
+
+def processCommand(inputFile):
+	with open(str(inputFile), 'r+') as file:  # Use file to refer to the file object
+		line = file.read()
+		file.truncate(0)
+		file.flush()
+
+		global IS_RUNNING, PAUSED
+
+		if 'pause' in line:
+			IS_PAUSED = True
+			print('SYSTEM PAUSED')
+		if 'restart' in line:
+			IS_PAUSED = False
+			print('SYSTEM RESTART')
+		if 'quit' in line:
+			IS_RUNNING = False
+		if 'remote-sync':
+			syncronizeDb( REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT )
 
 
 
@@ -392,6 +418,7 @@ def main():
 	results = parser.parse_args()
 
 	## Parse the parameters and set the global variables
+	global REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT
 
 	BOARD_ID                = str(results.boardname)
 	SERVER_IP               = results.serverIp
@@ -419,11 +446,6 @@ def main():
 		RESET_PIN = results.resetPin
 
 	DATABASE = DATABASE_PATH + FdsDB.SQLITE_FILENAME
-
-#	if MODBUS_IP == None:
-#		IS_MODBUS_IN_DEBUG_MODE = True
-#	else:
-#		IS_MODBUS_IN_DEBUG_MODE = False
 
 
 	if SERVER_IP != None:
@@ -515,10 +537,13 @@ def main():
 	except Exception as e:
 		print(e)
 
+	cycle = 0
 
-	while True:
-		## reads N times before to sync the local db with the remote one
-		for i in range(0, READ_CYCLES_BEFORE_SYNC):
+	while IS_RUNNING:
+
+		processCommand(COMMAND_INPUT_FILE)
+
+		if not IS_PAUSED:
 
 			print("Sensors reading " + str( i ))
 
@@ -575,11 +600,15 @@ def main():
 					dataRS,
 					mcuData)
 
+			cycle = cycle + 1
+
 			time.sleep( DELAY_BETWEEN_READINGS )
 
-		## syncronize data
-		if DB_SYNC_ENABLED:
-			syncronizeDb( REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT )
+			## syncronize data
+			if cycle == READ_CYCLES_BEFORE_SYNC:
+				cycle = 0
+				if DB_SYNC_ENABLED:
+					syncronizeDb( REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT )
 
 
 
