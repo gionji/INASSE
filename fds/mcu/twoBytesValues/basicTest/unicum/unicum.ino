@@ -155,6 +155,13 @@ void setup() {
 	Wire.begin(I2C_ADDR);
 	Wire.onRequest(requestEvent); // data request to slave
 	Wire.onReceive(receiveEvent); // data slave received
+
+  for(int i=0; i<5; i++){
+    digitalWrite(13, HIGH);
+    delay(30);
+    digitalWrite(13, LOW);
+    delay(30);
+    }
 }
 
 
@@ -198,7 +205,7 @@ void loop() {
 	VALUE_PRESSURE_IN  = (float) pressureIn;
 	VALUE_PRESSURE_OUT = (float) pressureOut;
   VALUE_PRESSURE_MIDDLE = (float) pressureMiddle;
-  VALUE_CC  = (float)(Icc   * SCALE_CC );
+  VALUE_CC  = (float) Icc ;
   VALUE_AC1 = (float)(Irms1 * SCALE_AC1);
   VALUE_AC2 = (float)(Irms2 * SCALE_AC2);
   
@@ -215,7 +222,7 @@ void loop() {
 	digitalWrite(13, LOW);
 	delay(10);
 
-	delay(100);
+	//delay(100);
 }
 
 

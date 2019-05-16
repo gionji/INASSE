@@ -198,13 +198,13 @@ class FdsSensor():
 			data[ TEMP_1_LABEL ]          =   27.1
 			data[ TEMP_2_LABEL ]          =   27.1
 			data[ PRESSURE_IN_LABEL ]     =   200.1
-			data[ PRESSURE_OUT_LABEL ]     =   200.2
-			data[ PRESSURE_MIDDLE_LABEL ]     =   200.3
+			data[ PRESSURE_OUT_LABEL ]    =   200.2
+			data[ PRESSURE_MIDDLE_LABEL ] =   200.3
 			data[ FLUX_IN_LABEL ]         =   301
 			data[ FLUX_OUT_LABEL ]        =   302
-			data[ CC_CURRENT_LABEL ]              =   400.1
-			data[ AC1_CURRENT_LABEL ]             =   500.1
-			data[ AC2_CURRENT_LABEL ]             =   500.2
+			data[ CC_CURRENT_LABEL ]      =   400.1
+			data[ AC1_CURRENT_LABEL ]     =   500.1
+			data[ AC2_CURRENT_LABEL ]     =   500.2
 			return data
 
 		try:
@@ -215,9 +215,9 @@ class FdsSensor():
 			data[ PRESSURE_MIDDLE_LABEL ] =   self.getPressureOut()
 			data[ FLUX_IN_LABEL ]         =   self.getWaterFluxIn()
 			data[ FLUX_OUT_LABEL ]        =   self.getWaterFluxOut()
-			data[ CC_CURRENT_LABEL ]              =   self.getCcCurrent()
-			data[ AC1_CURRENT_LABEL ]             =   self.getAcCurrent(1)
-			data[ AC2_CURRENT_LABEL ]             =   self.getAcCurrent(2)
+			data[ CC_CURRENT_LABEL ]      =   self.getCcCurrent()
+			data[ AC1_CURRENT_LABEL ]     =   self.getAcCurrent(1)
+			data[ AC2_CURRENT_LABEL ]     =   self.getAcCurrent(2)
 		except Exception as e:
 			raise IOError('Unable to connect to MCU:' + str(e))
 

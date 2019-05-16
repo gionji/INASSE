@@ -483,10 +483,10 @@ def main():
 		print("MCU reset!!")
 		resetMcu( BOARD_TYPE, RESET_PIN )
 
+
 	for i in range(0, 6):
 		print('. ', end='', flush=True)
 		time.sleep(0.5)
-
 
 
 	## connect to the local db: create a new file if doesn't exists
@@ -510,7 +510,6 @@ def main():
 		# ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
 		chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, isDebug = IS_MODBUS_IN_DEBUG_MODE )
 
-		# Fa solo finta adesso, non serve a una sega
 		chargeController.connect()
 
 	except Exception as e:
@@ -559,7 +558,6 @@ def main():
 			if(mcuData == None):
 				print("MCU RESET: MCU i2c probably stuck!")
 				resetMcu( BOARD_TYPE, RESET_PIN )
-
 
 			if 'm' in PRINT:
 				printData("MCU", mcuData)
