@@ -45,7 +45,8 @@ DEFAULT_DATABASE_PATH_C23 = '/www/'
 DEFAULT_DATABASE_PATH_NEO = './'
 #DEFAULT_REMOTE_SERVER_URL = "http://"+ SERVER_IP +":8888/sync/"
 
-
+DATABASE_PATH = '/www/'
+TELEMETRY_PATH = './syntetics/'
 
 
 def createDbTables( dbConnection ):
@@ -336,9 +337,6 @@ def saveErrorToTelemetryFile(path, error):
 def main():
 	print("INASSE OffGridBox v0.2")
 
-	DATABASE_PATH = '/www/'
-	TELEMETRY_PATH = './syntetics/'
-
 	parser = ArgumentParser()
 
 	parser.add_argument('--mcu-debug',
@@ -536,16 +534,7 @@ def main():
 		time.sleep(0.5)
 
 
-	## connect to the local db: create a new file if doesn't exists
-	dbConnection = sqlite3.connect( DATABASE )
-
-	## create tables in sqlite DB if dont exists
-	# PAY ATTENTION: if chenged the db structure, it wont recreate the db
-	# but the fields will be different
-	createDbTables( dbConnection )
-
-	arduino  = None
-	# arduinos = None
+	arduino = None
 
 	try:
 		# initialize the MCU object
@@ -553,44 +542,9 @@ def main():
 	except Exception as e:
 		print(e)
 
-	try:
-		# ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
-		chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, isDebug = IS_MODBUS_IN_DEBUG_MODE )
-
-		chargeController.connect()
-
-	except Exception as e:
-		print(e)
-
-	cycle = 0
-
 	while IS_RUNNING:
 
-		processCommand(COMMAND_INPUT_FILE)
-
 		if not IS_PAUSED:
-
-			print("Sensors reading " + str( cycle ))
-
-			try:
-				dataCC = chargeController.getChargeControllerData()
-			except Exception as e:
-				dataCC = None
-				print("READING MODBUS CC: " + str(e))
-
-			try:
-				dataRB = chargeController.getRelayBoxData()
-			except Exception as e:
-				dataRB = None
-				print("READING MODBUS RB: " + str(e))
-
-			try:
-				dataRS = chargeController.getRelayBoxState()
-			except Exception as e:
-				dataRS = None
-				print("READING MODBUS RS: " + str(e))
-
-
 			## get Data from MCUs
 			for attempt in range(0, MCU_MAX_ATTEMPTS):
 				# initialize the data structure for MCU da
@@ -604,39 +558,23 @@ def main():
 					mcuData = None
 					print("I2C read attempt " + str(attempt) + ": FAIL  " + str(e))
 
-
 			if(mcuData == None):
 				print("MCU RESET: MCU i2c probably stuck!")
 				resetMcu( BOARD_TYPE, RESET_PIN )
 
 			if 'm' in PRINT:
 				printData("MCU", mcuData)
-			if 'c' in PRINT:
-				printData("CC", dataCC)
-			if 'r' in PRINT:
-				printData("RB", dataRB)
-			if 's' in PRINT:
-				printData("RS", dataRS)
 
-			## save data to local sqlite db
-			saveDataToDb( dbConnection,
-					dataCC,
-					dataRB,
-					dataRS,
-					mcuData)
+			adcs = [int( open("/sys/bus/iio/devices/iio:device0/in_voltage0_raw").read() ),
+					int( open("/sys/bus/iio/devices/iio:device0/in_voltage1_raw").read() ),
+		 			int( open("/sys/bus/iio/devices/iio:device0/in_voltage2_raw").read() ),
+		 			int( open("/sys/bus/iio/devices/iio:device0/in_voltage3_raw").read() ),
+				 	int( open("/sys/bus/iio/devices/iio:device1/in_voltage0_raw").read() ),
+					int( open("/sys/bus/iio/devices/iio:device1/in_voltage1_raw").read() ) ]
 
-			saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
-
-			cycle = cycle + 1
+			print( adcs )
 
 			time.sleep( DELAY_BETWEEN_READINGS )
-
-
-			## syncronize data
-			if cycle == READ_CYCLES_BEFORE_SYNC:
-				cycle = 0
-				if DB_SYNC_ENABLED:
-					syncronizeDb( REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT )
 
 
 
