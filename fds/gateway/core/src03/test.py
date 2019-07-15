@@ -310,12 +310,31 @@ def processCommand(inputFile):
 			print("Manually request remote sync")
 			syncronizeDb( REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT )
 
+
+
+
+def saveDataToTelemetryFile(path, dataCC, dataRB, dataRS, dataMCU):
+
+        with open(path + 'charge_controller/data', 'w+') as fp:
+                json.dump(dataCC, fp)
+
+        with open(path + 'relay_box/data', 'w+') as fp:
+                json.dump(dataRB, fp)
+
+        with open(path + 'relay_status/data', 'w+') as fp:
+                json.dump(dataRS, fp)
+
+        with open(path + 'mcu/data', 'w+') as fp:
+                json.dump(dataMCU, fp)
+
+
+
 		
 
 def main():
 	print("INASSE OffGridBox v0.2")
 
-	DATABASE_PATH = '/www/'
+	DATABASE_PATH = '/www/'; TELEMETRY_PATH = './syntetics/'
 
 	parser = ArgumentParser()
 
@@ -601,7 +620,7 @@ def main():
 					dataCC,
 					dataRB,
 					dataRS,
-					mcuData)
+					mcuData);saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
 
 			cycle = cycle + 1
 
