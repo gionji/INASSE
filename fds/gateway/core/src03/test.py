@@ -315,26 +315,29 @@ def processCommand(inputFile):
 
 def saveDataToTelemetryFile(path, dataCC, dataRB, dataRS, dataMCU):
 
-        with open(path + 'charge_controller/data', 'w+') as fp:
-                json.dump(dataCC, fp)
+	with open(path + 'charge_controller/data', 'w+') as fp:
+		json.dump(dataCC, fp)
 
-        with open(path + 'relay_box/data', 'w+') as fp:
-                json.dump(dataRB, fp)
+	with open(path + 'relay_box/data', 'w+') as fp:
+		json.dump(dataRB, fp)
 
-        with open(path + 'relay_status/data', 'w+') as fp:
-                json.dump(dataRS, fp)
+	with open(path + 'relay_status/data', 'w+') as fp:
+		json.dump(dataRS, fp)
 
-        with open(path + 'mcu/data', 'w+') as fp:
-                json.dump(dataMCU, fp)
+	with open(path + 'mcu/data', 'w+') as fp:
+		json.dump(dataMCU, fp)
 
 
+def saveErrorToTelemetryFile(path, error):
+	with open(path + 'errors/data', 'w+') as fp:
+		json.dump(error, fp)
 
-		
 
 def main():
 	print("INASSE OffGridBox v0.2")
 
-	DATABASE_PATH = '/www/'; TELEMETRY_PATH = './syntetics/'
+	DATABASE_PATH = '/www/'
+	TELEMETRY_PATH = './syntetics/'
 
 	parser = ArgumentParser()
 
@@ -620,13 +623,15 @@ def main():
 					dataCC,
 					dataRB,
 					dataRS,
-					mcuData);saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
+					mcuData)
+
+			saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
 
 			cycle = cycle + 1
 
 			time.sleep( DELAY_BETWEEN_READINGS )
 
-			
+
 			## syncronize data
 			if cycle == READ_CYCLES_BEFORE_SYNC:
 				cycle = 0
