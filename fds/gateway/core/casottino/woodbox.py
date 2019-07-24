@@ -13,6 +13,12 @@ DEFAULT_RESET_GPIO_NEO = 39
 DEFAULT_RESET_GPIO_C23 = 149
 
 
+def clear():
+    print ("\x1b[2J")
+
+def move_cursor(x,y):
+    print ("\x1b[{};{}H".format(y+1,x+1))
+
 def dict_factory(cursor, row):
 	d = {}
 	for idx, col in enumerate(cursor.description):
@@ -105,36 +111,46 @@ def getBoardId():
 def main():
 	print("INASSE OffGridBox Woodbox")
 
+
+
 	while IS_RUNNING:
 
 		if not IS_PAUSED:
 
 			meanCycles = 100
-			bias = 2100
-			scale = 140
 			adcs = [0, 0, 0, 0, 0, 0]
+			readings = [0, 0, 0, 0, 0, 0]
+			
+			adc_dev = [
+				"/sys/bus/iio/devices/iio:device0/in_voltage0_raw"
+				,"/sys/bus/iio/devices/iio:device0/in_voltage1_raw"
+				,"/sys/bus/iio/devices/iio:device0/in_voltage2_raw"
+				,"/sys/bus/iio/devices/iio:device0/in_voltage3_raw"
+				#,"/sys/bus/iio/devices/iio:device1/in_voltage0_raw"
+				#,"/sys/bus/iio/devices/iio:device1/in_voltage1_raw"
+				]
+				
+			scale = [140.0, 140.0, 140.0, 140.0, 1.0, 1.0]
+			offset = [2146, 2085, 2099, 2104, 0, 0]
+
+			adc_number = len(adc_dev)
 
 			for i in range(0, meanCycles):
-				adcs[0] = adcs[0] + int( open("/sys/bus/iio/devices/iio:device0/in_voltage0_raw").read() )
-				adcs[1] = adcs[1] + int( open("/sys/bus/iio/devices/iio:device0/in_voltage1_raw").read() )
-				adcs[2] = adcs[2] + int( open("/sys/bus/iio/devices/iio:device0/in_voltage2_raw").read() )
-				adcs[3] = adcs[3] + int( open("/sys/bus/iio/devices/iio:device0/in_voltage3_raw").read() )
-				adcs[4] = adcs[4] + int( open("/sys/bus/iio/devices/iio:device1/in_voltage0_raw").read() )
-				adcs[5] = adcs[5] + int( open("/sys/bus/iio/devices/iio:device1/in_voltage1_raw").read() )
+				for i in range(0, adc_number):
+					readings[i] = int( open( adc_dev[i] ).read() )
+				
+				for i in range(0,adc_number):
+					adcs[i] = adcs[i] + readings[i]
+					
+			for i in range(0,adc_number):	
+				adcs[i] = round((float(adcs[i] / meanCycles) - offset[i]) / scale[i], 2)
 
-			adcs[0] = ((adcs[0] / meanCycles) - 2100) / scale
-			adcs[1] = ((adcs[1] / meanCycles) - 2100) / scale
-			adcs[2] = ((adcs[2] / meanCycles) - 2100) / scale
-			adcs[3] = ((adcs[3] / meanCycles) - 2100) / scale
-			adcs[4] = ((adcs[4] / meanCycles) )
-			adcs[5] = ((adcs[5] / meanCycles) )
-
-
-			print('Array   current:  ' + str(adcs[0]) )
-			print('Battery current:  ' + str(adcs[1]) )
-			print('Output  current:  ' + str(adcs[2]) )
-			print('Pump    current:  ' + str(adcs[3]) + '\n' )
-
+			clear()
+			move_cursor(0,0)
+			print('Array   current:  ' + str(adcs[0]) + '  A')
+			print('Battery current:  ' + str(adcs[1]) + '  A')
+			print('Output  current:  ' + str(adcs[2]) + '  A')
+			print('Pump    current:  ' + str(adcs[3]) + '  A\n' )
 
 			time.sleep( 0.1 )
 
