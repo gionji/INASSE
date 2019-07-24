@@ -2,7 +2,7 @@ import logging
 import sqlite3
 import time
 import sys
-import requests
+#import requests
 import json
 import eventlet
 eventlet.monkey_patch()
@@ -528,12 +528,6 @@ def main():
 		print("MCU reset!!")
 		resetMcu( BOARD_TYPE, RESET_PIN )
 
-
-	for i in range(0, 6):
-		print('. ', end='', flush=True)
-		time.sleep(0.5)
-
-
 	arduino = None
 
 	try:
@@ -552,29 +546,49 @@ def main():
 
 				try:
 					mcuData  = arduino.getMcuData()
-					print("I2C read attempt " + str(attempt) + ": ok")
+#					print("I2C read attempt " + str(attempt) + ": ok")
 					break
 				except Exception as e:
 					mcuData = None
-					print("I2C read attempt " + str(attempt) + ": FAIL  " + str(e))
+					# print("I2C read attempt " + str(attempt) + ": FAIL  " + str(e))
 
 			if(mcuData == None):
-				print("MCU RESET: MCU i2c probably stuck!")
+				# print("MCU RESET: MCU i2c probably stuck!")
 				resetMcu( BOARD_TYPE, RESET_PIN )
 
-			if 'm' in PRINT:
-				printData("MCU", mcuData)
+			
+			printData("MCU", mcuData)
 
-			adcs = [int( open("/sys/bus/iio/devices/iio:device0/in_voltage0_raw").read() ),
-					int( open("/sys/bus/iio/devices/iio:device0/in_voltage1_raw").read() ),
-		 			int( open("/sys/bus/iio/devices/iio:device0/in_voltage2_raw").read() ),
-		 			int( open("/sys/bus/iio/devices/iio:device0/in_voltage3_raw").read() ),
-				 	int( open("/sys/bus/iio/devices/iio:device1/in_voltage0_raw").read() ),
-					int( open("/sys/bus/iio/devices/iio:device1/in_voltage1_raw").read() ) ]
 
-			print( adcs )
+			meanCycles = 100
+			bias = 2100
+			scale = 140 
+			adcs = [0, 0, 0, 0, 0, 0]
 
-			time.sleep( DELAY_BETWEEN_READINGS )
+			for i in range(0, meanCycles):
+				adcs[0] = adcs[0] + int( open("/sys/bus/iio/devices/iio:device0/in_voltage0_raw").read() )
+				adcs[1] = adcs[1] + int( open("/sys/bus/iio/devices/iio:device0/in_voltage1_raw").read() )
+				adcs[2] = adcs[2] + int( open("/sys/bus/iio/devices/iio:device0/in_voltage2_raw").read() )
+				adcs[3] = adcs[3] + int( open("/sys/bus/iio/devices/iio:device0/in_voltage3_raw").read() )
+				adcs[4] = adcs[4] + int( open("/sys/bus/iio/devices/iio:device1/in_voltage0_raw").read() )
+				adcs[5] = adcs[5] + int( open("/sys/bus/iio/devices/iio:device1/in_voltage1_raw").read() ) 
+
+			adcs[0] = ((adcs[0] / meanCycles) - 2100) / scale
+			adcs[1] = ((adcs[1] / meanCycles) - 2100) / scale
+			adcs[2] = ((adcs[2] / meanCycles) - 2100) / scale
+			adcs[3] = ((adcs[3] / meanCycles) - 2100) / scale
+			adcs[4] = ((adcs[4] / meanCycles) )
+			adcs[5] = ((adcs[5] / meanCycles) )
+
+
+	
+			print('Array   current:  ' + str(adcs[0]) )
+			print('Battery current:  ' + str(adcs[1]) )
+			print('Output  current:  ' + str(adcs[2]) )
+			print('Pump    current:  ' + str(adcs[3]) + '\n' )
+
+
+			time.sleep( 0.1 )
 
 
 
