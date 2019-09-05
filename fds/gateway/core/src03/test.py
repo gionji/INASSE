@@ -479,8 +479,8 @@ def main():
 		DB_SYNC_ENABLED = False
 
 	if SERVER_ADDR != None:
-		REMOTE_SERVER_URL = SERVER_ADDR
 		DB_SYNC_ENABLED = True
+                REMOTE_SERVER_URL = SERVER_ADDR + ":8888/sync/"
 	else:
 		if DB_SYNC_ENABLED:
 			REMOTE_SERVER_URL = "http://"+ SERVER_IP +":8888/sync/"
