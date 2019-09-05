@@ -63,7 +63,7 @@ def addDataToDb(table_name, json_data):
     try:
         obj_data = ast.literal_eval( json_decoded )
     except Exception as e:
-        print json_decoded
+        print(json_decoded)
 
     # get the board ID
     boardId = obj_data['boardId']
@@ -105,7 +105,7 @@ class MainHandler(tornado.web.RequestHandler):
         data = json.loads(json_data)
 
         #print the readed json PRETTY
-        print json.dumps(data, indent=2, sort_keys=True)
+        print(json.dumps(data, indent=2, sort_keys=True))
 
 
 
