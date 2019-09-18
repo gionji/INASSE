@@ -117,6 +117,7 @@ class McuHandler(tornado.web.RequestHandler):
 
     def post(self):
         try:
+            print('post-mcu')
             json_data = self.request.body
             boardId, numberOfRecords = addDataToDb('mcu', json_data)
         except Exception as e:
@@ -133,6 +134,7 @@ class ChargeControllerHandler(tornado.web.RequestHandler):
 
     def post(self):
         try:
+            print('post-cc')
             json_data = self.request.body
             boardId, numberOfRecords = addDataToDb('charge_controller', json_data)
         except Exception as e:
@@ -150,6 +152,7 @@ class RelayBoxHandler(tornado.web.RequestHandler):
 
     def post(self):
         try:
+            print('post-rb')
             json_data = self.request.body
             boardId, numberOfRecords = addDataToDb('relay_box', json_data)
         except Exception as e:
@@ -167,6 +170,7 @@ class RelayStateHandler(tornado.web.RequestHandler):
 
     def post(self):
         try:
+            print('post-rs')
             json_data = self.request.body
             boardId, numberOfRecords = addDataToDb('relay_state', json_data)
         except Exception as e:
