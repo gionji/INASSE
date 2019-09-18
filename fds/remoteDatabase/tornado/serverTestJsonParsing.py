@@ -101,10 +101,12 @@ class MainHandler(tornado.web.RequestHandler):
         self.write("Hello, world")
 
     def post(self):
-        json_data = self.request.body
-        data = json.loads(json_data)
+        try:
+            json_data = self.request.body
+            data = json.loads(json_data)
+        except Exception as e:
+            print(e)
 
-        #print the readed json PRETTY
         print(json.dumps(data, indent=2, sort_keys=True))
 
 
@@ -114,12 +116,13 @@ class McuHandler(tornado.web.RequestHandler):
         self.write("Microcontrollers Handler")
 
     def post(self):
-        json_data = self.request.body
-        boardId, numberOfRecords = addDataToDb('mcu', json_data)
+        try:
+            json_data = self.request.body
+            boardId, numberOfRecords = addDataToDb('mcu', json_data)
+        except Exception as e:
+            print(e)
 
-        # print json.dumps(data, indent=2, sort_keys=True)
         print( "\n" + str(datetime.datetime.now()) + " - " + str(boardId) + " - MCU Data received: " + str( len(json_data) ) + " bytes. Records " + str(numberOfRecords))
-
 
         self.write("MCU Sync ok")
 
@@ -129,12 +132,14 @@ class ChargeControllerHandler(tornado.web.RequestHandler):
         self.write("ChargeController Handler")
 
     def post(self):
-        json_data = self.request.body
-        boardId, numberOfRecords = addDataToDb('charge_controller', json_data)
+        try:
+            json_data = self.request.body
+            boardId, numberOfRecords = addDataToDb('charge_controller', json_data)
+        except Exception as e:
+            print(e)
 
         print( "\n" + str(datetime.datetime.now()) + " - " + str(boardId) + " - CC Data received: " + str( len(json_data) ) + " bytes. Records " + str(numberOfRecords))
-        ## print the readed json PRETTY
-        #print json.dumps(data, indent=2, sort_keys=True)
+
         self.write("CC Sync ok")
 
 
@@ -144,13 +149,14 @@ class RelayBoxHandler(tornado.web.RequestHandler):
         self.write("RelayBoxHandler Handler")
 
     def post(self):
-        json_data = self.request.body
-        boardId, numberOfRecords = addDataToDb('relay_box', json_data)
+        try:
+            json_data = self.request.body
+            boardId, numberOfRecords = addDataToDb('relay_box', json_data)
+        except Exception as e:
+            print(e)
 
         print( "\n" + str(datetime.datetime.now()) + " - " + str(boardId) + " - RB Data received: " + str( len(json_data) ) + " bytes. Records " + str(numberOfRecords))
 
-        ## print the readed json PRETTY
-        # print json.dumps(data, indent=2, sort_keys=True)
         self.write("RB Sync ok")
 
 
@@ -160,13 +166,14 @@ class RelayStateHandler(tornado.web.RequestHandler):
         self.write("RelayStateHandler Handler")
 
     def post(self):
-        json_data = self.request.body
-        boardId, numberOfRecords = addDataToDb('relay_state', json_data)
+        try:
+            json_data = self.request.body
+            boardId, numberOfRecords = addDataToDb('relay_state', json_data)
+        except Exception as e:
+            print(e)
 
         print( "\n" + str(datetime.datetime.now()) + " - " + str(boardId) + " - RS Data received: " + str( len(json_data) ) + " bytes. Records " + str(numberOfRecords))
 
-        ## print the readed json PRETTY
-        #print json.dumps(data, indent=2, sort_keys=True)
         self.write("RS Sync ok")
 
 
