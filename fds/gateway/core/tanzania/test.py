@@ -384,15 +384,6 @@ def main():
 						type=int,
 						help='Set the number of cycles after you syncronize the remote database (cycles)')
 
-	parser.add_argument('--i2c-channel',
-						'-i',
-						action='store',
-						dest='i2cChannel',
-						type=int,
-						default=1,
-						nargs=1,
-						help='Set the i2c channel: \n1 SBC-23 \n3 UDOO NEO ')
-
 	parser.add_argument('--modbus-ip',
 						action='store',
 						default=DEFAULT_MODBUS_IP,
@@ -444,21 +435,16 @@ def main():
 	READ_CYCLES_BEFORE_SYNC = results.cycles
 	IS_MODBUS_IN_DEBUG_MODE = results.modbusDebug
 	IS_MCU_IN_DEBUG_MODE	= results.mcuDebug
-	BUS_I2C                 = results.i2cChannel[0]
 	MCU_MAX_ATTEMPTS        = results.i2cMaxAttempts
 	REMOTE_SYNC_TIMEOUT     = results.timeout
 	MODBUS_IP               = results.modbusIp
 	PRINT                   = results.prints
 	IS_REMOTE_SYNC_DISABLED = results.isRemoteSyncDisabled
 
-	if BUS_I2C == 1:
-		BOARD_TYPE = "C23"
-		RESET_PIN = DEFAULT_RESET_GPIO_C23
-		DATABASE_PATH = DEFAULT_DATABASE_PATH_C23
-	elif BUS_I2C == 3:
-		BOARD_TYPE = "NEO"
-		RESET_PIN = DEFAULT_RESET_GPIO_NEO
-		DATABASE_PATH = DEFAULT_DATABASE_PATH_NEO
+	BUS_I2C = 1
+	BOARD_TYPE = "C23"
+	RESET_PIN = DEFAULT_RESET_GPIO_C23
+	DATABASE_PATH = DEFAULT_DATABASE_PATH_C23
 
 	if results.resetPin != None:
 		RESET_PIN = results.resetPin
