@@ -625,7 +625,7 @@ def main():
 					dataRS,
 					mcuData)
 
-			saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
+#			saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
 
 			cycle = cycle + 1
 
