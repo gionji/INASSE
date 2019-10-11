@@ -566,7 +566,7 @@ def main():
 
 	while IS_RUNNING:
 
-		processCommand(COMMAND_INPUT_FILE)
+#		processCommand(COMMAND_INPUT_FILE)
 
 		if not IS_PAUSED:
 
