@@ -27,18 +27,16 @@ DATABASE = None
 BOARD_ID = None
 REMOTE_SYNC_TIMEOUT = None
 
-COMMAND_INPUT_FILE = './fdscmd'
-
 ############# DEFAULTS ####################################
 DEFAULT_MODBUS_IP = '192.168.2.253'
 DEFAULT_READ_CYCLES_BEFORE_SYNC = 6
-DEFAULT_DELAY_BETWEEN_READINGS = 10.0
+DEFAULT_DELAY_BETWEEN_READINGS  = 10.0
 
-DEFAULT_MCU_MAX_ATTEMPTS = 10
-DEFAULT_REMOTE_SYNC_TIMEOUT = 60
+DEFAULT_MCU_MAX_ATTEMPTS        = 10
+DEFAULT_REMOTE_SYNC_TIMEOUT     = 60
 
-DEFAULT_RESET_GPIO_NEO = 39
-DEFAULT_RESET_GPIO_C23 = 149
+DEFAULT_RESET_GPIO_NEO          = 39
+DEFAULT_RESET_GPIO_C23          = 149
 
 DEFAULT_REMOTE_SERVER_IP = None
 DEFAULT_DATABASE_PATH_C23 = '/www/'
@@ -334,10 +332,13 @@ def saveErrorToTelemetryFile(path, error):
 
 
 def main():
-	print("INASSE OffGridBox v0.2")
+	print("INASSE OffGridBox v0.5 - tanzania")
 
-	DATABASE_PATH = '/www/'
-	TELEMETRY_PATH = './syntetics/'
+	CWD = os.getcwd()
+
+	DATABASE_PATH      = '/www/'
+	TELEMETRY_PATH     = CWD + '/syntetics/'
+	COMMAND_INPUT_FILE = CWD + '/fdscmd'
 
 	parser = ArgumentParser()
 
@@ -531,7 +532,7 @@ def main():
 
 	while IS_RUNNING:
 
-	#	processCommand(COMMAND_INPUT_FILE)
+		processCommand(COMMAND_INPUT_FILE)
 
 		if not IS_PAUSED:
 
@@ -583,14 +584,14 @@ def main():
 			if 's' in PRINT:
 				printData("RS", dataRS)
 
-			## save data to local sqlite db
+			## save data to local sqlite db:
 			saveDataToDb( dbConnection,
 					dataCC,
 					dataRB,
 					dataRS,
 					mcuData)
 
-		#	saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
+			saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
 
 			cycle = cycle + 1
 
