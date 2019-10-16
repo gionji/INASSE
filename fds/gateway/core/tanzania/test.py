@@ -15,6 +15,8 @@ import FdsChargeController as FdsCC
 import FdsSensorUnico	  as FdsSS
 import FdsDbConstants	  as FdsDB
 
+import FdsCommon as fds
+
 # lo uso per test sul cartone, visto che ora gli schetch sono quelli vecchi a 4 MCU
 #import FdsSensorUnico4mcu  as FdsSS4Mcu
 
@@ -331,6 +333,16 @@ def saveErrorToTelemetryFile(path, error):
 		json.dump(error, fp)
 
 
+def printInit():
+	print 'Inasse. ....'
+
+
+def parseParameters():
+	print 'parse parameters ...'
+
+def
+
+
 def main():
 	print("INASSE OffGridBox v0.5 - tanzania")
 
@@ -513,14 +525,15 @@ def main():
 	arduino  = None
 	# arduinos = None
 
+
+	## initialize the MCU object
 	try:
-		# initialize the MCU object
 		arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE, busId = BUS_I2C)
 	except Exception as e:
 		print(e)
 
+	## initialize the ChargeController and Relaybox
 	try:
-		# ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
 		chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, isDebug = IS_MODBUS_IN_DEBUG_MODE )
 
 		chargeController.connect()
@@ -531,11 +544,10 @@ def main():
 	cycle = 0
 
 	while IS_RUNNING:
-
+		## check if there are commands in cmd file and change local vaiables
 		processCommand(COMMAND_INPUT_FILE)
 
 		if not IS_PAUSED:
-
 			print("Sensors reading " + str( cycle ))
 
 			try:
@@ -570,11 +582,12 @@ def main():
 					mcuData = None
 					print("I2C read attempt " + str(attempt) + ": FAIL  " + str(e))
 
-
+			## if after all the cycles the mcu is stuck try reset
 			if(mcuData == None):
 				print("MCU RESET: MCU i2c probably stuck!")
 				resetMcu( BOARD_TYPE, RESET_PIN )
 
+			## print the readed rata
 			if 'm' in PRINT:
 				printData("MCU", mcuData)
 			if 'c' in PRINT:
@@ -584,6 +597,11 @@ def main():
 			if 's' in PRINT:
 				printData("RS", dataRS)
 
+			## Qui in mezzo si possono fare le varie sotto elabrazioni e inviare semmai i dati alla fine
+
+
+
+
 			## save data to local sqlite db:
 			saveDataToDb( dbConnection,
 					dataCC,
@@ -591,12 +609,11 @@ def main():
 					dataRS,
 					mcuData)
 
+			## send data to telemetry
 			saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
 
 			cycle = cycle + 1
-
 			time.sleep( DELAY_BETWEEN_READINGS )
-
 
 			## syncronize data
 			if cycle == READ_CYCLES_BEFORE_SYNC:
