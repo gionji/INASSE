@@ -4,6 +4,8 @@ from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 import random
 import logging
 
+import FdsCommon as fds
+
 MODBUS_RTU = 0x01
 MODBUS_ETH = 0x02
 
@@ -55,7 +57,7 @@ class FdsChargeController():
 			    	print("Trying to connect to Modbus IP Host %s ..." % self.ipAddress)
 			    	self.client = ModbusClient(self.ipAddress, MODBUS_PORT)
 			    	self.client.connect()
-		
+
 		elif (self.communicationType == MODBUS_RTU):
                         logging.debug("FdsChargeController: connect RTU called")
 
@@ -83,21 +85,21 @@ class FdsChargeController():
 				p_scale = V_PU * I_PU * 2**(-17)
 
 				# battery sense voltage, filtered
-				data["battsV"]       = rr.registers[24] * v_scale
-				data["battsSensedV"] = rr.registers[26] * v_scale
-				data["battsI"]       = rr.registers[28] * i_scale
-				data["arrayV"]       = rr.registers[27] * v_scale
-				data["arrayI"]       = rr.registers[29] * i_scale
-				data["statenum"]     = rr.registers[50]
-				data["hsTemp"]       = rr.registers[35]
-				data["rtsTemp"]      = rr.registers[36]
-				data["outPower"]     = rr.registers[58] * p_scale
-				data["inPower"]      = rr.registers[59] * p_scale
-				data["minVb_daily"]  = rr.registers[64] * v_scale
-				data["maxVb_daily"]  = rr.registers[65] * v_scale
-				data["minTb_daily"]  = rr.registers[71]
-				data["maxTb_daily"]  = rr.registers[72]
-				data["dipswitches"]  = bin(rr.registers[48])[::-1][:-2].zfill(8)
+				data[ fds.LABEL_CC_BATTS_V ]       = rr.registers[24] * v_scale
+				data[ fds.LABEL_CC_BATT_SENSED_V ] = rr.registers[26] * v_scale
+				data[ fds.LABEL_CC_BATTS_I ]       = rr.registers[28] * i_scale
+				data[ fds.LABEL_CC_ARRAY_V ]       = rr.registers[27] * v_scale
+				data[ fds.LABEL_CC_ARRAY_I ]       = rr.registers[29] * i_scale
+				data[ fds.LABEL_CC_STATENUM ]     = rr.registers[50]
+				data[ fds.LABEL_CC_HS_TEMP]       = rr.registers[35]
+				data[ fds.LABEL_CC_RTS_TEMP]      = rr.registers[36]
+				data[ fds.LABEL_CC_OUT_POWER]     = rr.registers[58] * p_scale
+				data[ fds.LABEL_CC_IN_POWER]      = rr.registers[59] * p_scale
+				data[ fds.LABEL_CC_MINVB_DAILY ]  = rr.registers[64] * v_scale
+				data[ fds.LABEL_CC_MAXVB_DAILY ]  = rr.registers[65] * v_scale
+				data[ fds.LABEL_CC_MINTB_DAILY ]  = rr.registers[71]
+				data[ fds.LABEL_CC_MAXTB_DAILY ]  = rr.registers[72]
+				data[ fds.LABEL_CC_DIPSWITCHES ]  = bin(rr.registers[48])[::-1][:-2].zfill(8)
 				#led_state            = rr.registers
 			except ModbusIOException as e:
 				logging.error('Charge Controller: modbusIOException')
@@ -106,21 +108,21 @@ class FdsChargeController():
 				logging.error('Charge Controller: unpredicted exception')
 				raise e
 		else:
-			data["battsV"]       = random.uniform(0, 60)
-			data["battsSensedV"] = random.uniform(0, 60)
-			data["battsI"]       = random.uniform(0, 60)
-			data["arrayV"]       = random.uniform(0, 60)
-			data["arrayI"]       = random.uniform(0, 60)
-			data["statenum"]     = random.randint(1, 10)
-			data["hsTemp"]       = random.uniform(0, 60)
-			data["rtsTemp"]      = random.uniform(0, 60)
-			data["outPower"]     = random.uniform(0, 60)
-			data["inPower"]      = random.uniform(0, 60)
-			data["minVb_daily"]  = random.uniform(0, 60)
-			data["maxVb_daily"]  = random.uniform(0, 60)
-			data["minTb_daily"]  = random.uniform(0, 60)
-			data["maxTb_daily"]  = random.uniform(0, 60)
-			data["dipswitches"]  = bin(0x02)[::-1][:-2].zfill(8)
+			data[ fds.LABEL_CC_BATTS_V ]       = random.uniform(0, 60)
+			data[ fds.LABEL_CC_BATT_SENSED_V ] = random.uniform(0, 60)
+			data[ fds.LABEL_CC_BATTS_I ]       = random.uniform(0, 60)
+			data[ fds.LABEL_CC_ARRAY_V ]       = random.uniform(0, 60)
+			data[ fds.LABEL_CC_ARRAY_I ]       = random.uniform(0, 60)
+			data[ fds.LABEL_CC_STATENUM ]     = random.uniform(0, 60)
+			data[ fds.LABEL_CC_HS_TEMP]       = random.uniform(0, 60)
+			data[ fds.LABEL_CC_RTS_TEMP]      = random.uniform(0, 60)
+			data[ fds.LABEL_CC_OUT_POWER]     = random.uniform(0, 60)
+			data[ fds.LABEL_CC_IN_POWER]      = random.uniform(0, 60)
+			data[ fds.LABEL_CC_MINVB_DAILY ]  = random.uniform(0, 60)
+			data[ fds.LABEL_CC_MAXVB_DAILY ]  = random.uniform(0, 60)
+			data[ fds.LABEL_CC_MINTB_DAILY ]  = random.uniform(0, 60)
+			data[ fds.LABEL_CC_MAXTB_DAILY ]  = random.uniform(0, 60)
+			data[ fds.LABEL_CC_DIPSWITCHES ]  =bin(0x02)[::-1][:-2].zfill(8)
 
 		return data
 
@@ -135,24 +137,24 @@ class FdsChargeController():
 				rr = self.client.read_holding_registers(0,18, unit=RELAYBOX_UNIT)
 				v_scale = float(78.421 * 2**(-15))
 
-				data["adc_vb"]        = rr.registers[0] * v_scale
-				data["adc_vch_1"]     = rr.registers[1] * v_scale
-				data["adc_vch_2"]     = rr.registers[2] * v_scale
-				data["adc_vch_3"]     = rr.registers[3] * v_scale
-				data["adc_vch_4"]     = rr.registers[4] * v_scale
-				data["t_mod"]         = rr.registers[5]
-				data["global_faults"] = rr.registers[6]
-				data["global_alarms"] = rr.registers[7]
-				data["hourmeter_HI"]  = rr.registers[8]
-				data["hourmeter_LO"]  = rr.registers[9]
-				data["ch_faults_1"]   = rr.registers[10]
-				data["ch_faults_2"]   = rr.registers[11]
-				data["ch_faults_3"]   = rr.registers[12]
-				data["ch_faults_4"]   = rr.registers[13]
-				data["ch_alarms_1"]   = rr.registers[14]
-				data["ch_alarms_2"]   = rr.registers[15]
-				data["ch_alarms_3"]   = rr.registers[16]
-				data["ch_alarms_4"]   = rr.registers[17]
+				data[ fds.LABEL_RB_VB     ]        = rr.registers[0] * v_scale
+				data[ fds.LABEL_RB_ADC_VCH_1 ]     = rr.registers[1] * v_scale
+				data[ fds.LABEL_RB_ADC_VCH_2 ]     = rr.registers[2] * v_scale
+				data[ fds.LABEL_RB_ADC_VCH_3 ]     = rr.registers[3] * v_scale
+				data[ fds.LABEL_RB_ADC_VCH_4 ]     = rr.registers[4] * v_scale
+				data[ fds.LABEL_RB_T_MOD ]         = rr.registers[5]
+				data[ fds.LABEL_RB_GLOBAL_FAULTS ] = rr.registers[6]
+				data[ fds.LABEL_RB_GLOBAL_ALARMS ] = rr.registers[7]
+				data[ fds.LABEL_RB_HOURMETER_HI ]  = rr.registers[8]
+				data[ fds.LABEL_RB_HOURMETER_LO ]  = rr.registers[9]
+				data[ fds.LABEL_RB_CH_FAULTS_1"]   = rr.registers[10]
+				data[ fds.LABEL_RB_CH_FAULTS_2"]   = rr.registers[11]
+				data[ fds.LABEL_RB_CH_FAULTS_3 ]   = rr.registers[12]
+				data[ fds.LABEL_RB_CH_FAULTS_4 ]   = rr.registers[13]
+				data[ fds.LABEL_RB_CH_ALARMS_1 ]   = rr.registers[14]
+				data[ fds.LABEL_RB_CH_ALARMS_2 ]   = rr.registers[15]
+				data[ fds.LABEL_RB_CH_ALARMS_3 ]   = rr.registers[16]
+				data[ fds.LABEL_RB_CH_ALARMS_4 ]   = rr.registers[17]
 			except ModbusIOException as e:
 				logging.error('RelayBoxRead: modbusIOException')
 				raise e
@@ -161,24 +163,24 @@ class FdsChargeController():
 				raise e
 
 		else:
-			data["adc_vb"]        = random.uniform(0, 60)
-			data["adc_vch_1"]     = random.uniform(0, 60)
-			data["adc_vch_2"]     = random.uniform(0, 60)
-			data["adc_vch_3"]     = random.uniform(0, 60)
-			data["adc_vch_4"]     = random.uniform(0, 60)
-			data["t_mod"]         = random.uniform(0, 60)
-			data["global_faults"] = random.randint(0, 60)
-			data["global_alarms"] = random.randint(0, 60)
-			data["hourmeter_HI"]  = random.uniform(0, 60)
-			data["hourmeter_LO"]  = random.uniform(0, 60)
-			data["ch_faults_1"]   = random.randint(0, 60)
-			data["ch_faults_2"]   = random.randint(0, 60)
-			data["ch_faults_3"]   = random.randint(0, 60)
-			data["ch_faults_4"]   = random.randint(0, 60)
-			data["ch_alarms_1"]   = random.randint(0, 60)
-			data["ch_alarms_2"]   = random.randint(0, 60)
-			data["ch_alarms_3"]   = random.randint(0, 60)
-			data["ch_alarms_4"]   = random.randint(0, 60)
+			data[ fds.LABEL_RB_VB     ]        = random.uniform(0, 60)
+			data[ fds.LABEL_RB_ADC_VCH_1 ]     = random.uniform(0, 60)
+			data[ fds.LABEL_RB_ADC_VCH_2 ]     = random.uniform(0, 60)
+			data[ fds.LABEL_RB_ADC_VCH_3 ]     = random.uniform(0, 60)
+			data[ fds.LABEL_RB_ADC_VCH_4 ]     = random.uniform(0, 60)
+			data[ fds.LABEL_RB_T_MOD ]         = random.uniform(0, 60)
+			data[ fds.LABEL_RB_GLOBAL_FAULTS ] = random.uniform(0, 60)
+			data[ fds.LABEL_RB_GLOBAL_ALARMS ] = random.uniform(0, 60)
+			data[ fds.LABEL_RB_HOURMETER_HI ]  = random.uniform(0, 60)
+			data[ fds.LABEL_RB_HOURMETER_LO ]  = random.uniform(0, 60)
+			data[ fds.LABEL_RB_CH_FAULTS_1"]   = random.uniform(0, 60)
+			data[ fds.LABEL_RB_CH_FAULTS_2"]   = random.uniform(0, 60)
+			data[ fds.LABEL_RB_CH_FAULTS_3 ]   = random.uniform(0, 60)
+			data[ fds.LABEL_RB_CH_FAULTS_4 ]   = random.uniform(0, 60)
+			data[ fds.LABEL_RB_CH_ALARMS_1 ]   = random.uniform(0, 60)
+			data[ fds.LABEL_RB_CH_ALARMS_2 ]   = random.uniform(0, 60)
+			data[ fds.LABEL_RB_CH_ALARMS_3 ]   = random.uniform(0, 60)
+			data[ fds.LABEL_RB_CH_ALARMS_4 ]   = random.uniform(0, 60)
 		return data
 
 
@@ -188,14 +190,14 @@ class FdsChargeController():
 		if self.client != None:
 			try:
 				rr = self.client.read_coils(0, 8, unit=RELAYBOX_UNIT)
-				data["relay_1"]   = rr.bits[0]
-				data["relay_2"]   = rr.bits[1]
-				data["relay_3"]   = rr.bits[2]
-				data["relay_4"]   = rr.bits[3]
-				data["relay_5"]   = rr.bits[4]
-				data["relay_6"]   = rr.bits[5]
-				data["relay_7"]   = rr.bits[6]
-				data["relay_8"]   = rr.bits[7]
+				data[ fds.LABEL_RS_RELAY_1 ]   = rr.bits[0]
+				data[ fds.LABEL_RS_RELAY_2 ]   = rr.bits[1]
+				data[ fds.LABEL_RS_RELAY_3 ]   = rr.bits[2]
+				data[ fds.LABEL_RS_RELAY_4 ]   = rr.bits[3]
+				data[ fds.LABEL_RS_RELAY_5 ]   = rr.bits[4]
+				data[ fds.LABEL_RS_RELAY_6 ]   = rr.bits[5]
+				data[ fds.LABEL_RS_RELAY_7 ]   = rr.bits[6]
+				data[ fds.LABEL_RS_RELAY_8 ]   = rr.bits[7]
 			except ModbusIOException as e:
 				logging.error( 'RelayState: modbusIOException')
 				raise e
@@ -203,12 +205,12 @@ class FdsChargeController():
 				logging.error('RelayState: unpredicted exception')
 				raise
 		else:
-			data["relay_1"]   = 0x1
-			data["relay_2"]   = 0x1
-			data["relay_3"]   = 0x1
-			data["relay_4"]   = 0x0
-			data["relay_5"]   = 0x0
-			data["relay_6"]   = 0x0
-			data["relay_7"]   = 0x0
-			data["relay_8"]   = 0x0
+			data[ fds.LABEL_RS_RELAY_1 ]   = 0x1
+			data[ fds.LABEL_RS_RELAY_2 ]   = 0x1
+			data[ fds.LABEL_RS_RELAY_3 ]   = 0x1
+			data[ fds.LABEL_RS_RELAY_4 ]   = 0x0
+			data[ fds.LABEL_RS_RELAY_5 ]   = 0x0
+			data[ fds.LABEL_RS_RELAY_6 ]   = 0x0
+			data[ fds.LABEL_RS_RELAY_7 ]   = 0x0
+			data[ fds.LABEL_RS_RELAY_8 ]   = 0x0
 		return data
