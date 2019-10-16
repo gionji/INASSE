@@ -334,17 +334,17 @@ def saveErrorToTelemetryFile(path, error):
 
 
 def printInit():
-	print 'Inasse. ....'
+	print('Inasse. ....')
 
 
 def parseParameters():
-	print 'parse parameters ...'
+	print('parse parameters ...')
 
 def
 
 
 def main():
-	print("INASSE OffGridBox v0.5 - tanzania")
+	print("INASSE OfGridBox v0.5 - tanzania")
 
 	CWD = os.getcwd()
 
