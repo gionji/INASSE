@@ -147,8 +147,8 @@ class FdsChargeController():
 				data[ fds.LABEL_RB_GLOBAL_ALARMS ] = rr.registers[7]
 				data[ fds.LABEL_RB_HOURMETER_HI ]  = rr.registers[8]
 				data[ fds.LABEL_RB_HOURMETER_LO ]  = rr.registers[9]
-				data[ fds.LABEL_RB_CH_FAULTS_1"]   = rr.registers[10]
-				data[ fds.LABEL_RB_CH_FAULTS_2"]   = rr.registers[11]
+				data[ fds.LABEL_RB_CH_FAULTS_1 ]   = rr.registers[10]
+				data[ fds.LABEL_RB_CH_FAULTS_2 ]   = rr.registers[11]
 				data[ fds.LABEL_RB_CH_FAULTS_3 ]   = rr.registers[12]
 				data[ fds.LABEL_RB_CH_FAULTS_4 ]   = rr.registers[13]
 				data[ fds.LABEL_RB_CH_ALARMS_1 ]   = rr.registers[14]
@@ -173,8 +173,8 @@ class FdsChargeController():
 			data[ fds.LABEL_RB_GLOBAL_ALARMS ] = random.uniform(0, 60)
 			data[ fds.LABEL_RB_HOURMETER_HI ]  = random.uniform(0, 60)
 			data[ fds.LABEL_RB_HOURMETER_LO ]  = random.uniform(0, 60)
-			data[ fds.LABEL_RB_CH_FAULTS_1"]   = random.uniform(0, 60)
-			data[ fds.LABEL_RB_CH_FAULTS_2"]   = random.uniform(0, 60)
+			data[ fds.LABEL_RB_CH_FAULTS_1 ]   = random.uniform(0, 60)
+			data[ fds.LABEL_RB_CH_FAULTS_2 ]   = random.uniform(0, 60)
 			data[ fds.LABEL_RB_CH_FAULTS_3 ]   = random.uniform(0, 60)
 			data[ fds.LABEL_RB_CH_FAULTS_4 ]   = random.uniform(0, 60)
 			data[ fds.LABEL_RB_CH_ALARMS_1 ]   = random.uniform(0, 60)

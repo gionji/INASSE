@@ -1,4 +1,4 @@
-import FdsCommon as labels
+import FdsCommon as fds
 
 
 SQLITE_FILENAME = 'DB_fds_offgridbox.sqlite'
@@ -34,7 +34,7 @@ sql_create_charge_controller_table = """ CREATE TABLE IF NOT EXISTS charge_contr
 sql_create_relaybox_table = """ CREATE TABLE IF NOT EXISTS relay_box (
                                         id            integer PRIMARY KEY,
                                         timestamp     date    NOT NULL,
-                                        """ + fds.LABEL_RB_ADC_VB + """         float   NOT NULL,
+                                        """ + fds.LABEL_RB_VB + """         float   NOT NULL,
                                         """ + fds.LABEL_RB_ADC_VCH_1 + """      float   NOT NULL,
                                         """ + fds.LABEL_RB_ADC_VCH_2 + """      float   NOT NULL,
                                         """ + fds.LABEL_RB_ADC_VCH_3 + """      float   NOT NULL,
@@ -155,7 +155,7 @@ insert_relay_box = """
               """ + fds.LABEL_RB_CH_ALARMS_4 + """ ,
               """ + fds.LABEL_RB_CH_FAULTS_4 + """ ,
               """ + fds.LABEL_RB_HOURMETER_HI + """ ,
-              """ + fds.LABEL_RB_ADC_VB + """ ,
+              """ + fds.LABEL_RB_VB + """ ,
               """ + fds.LABEL_RB_ADC_VCH_4 + """ ,
               """ + fds.LABEL_RB_ADC_VCH_1 + """ ,
               """ + fds.LABEL_RB_ADC_VCH_2 + """ ,
@@ -177,7 +177,7 @@ insert_relay_box = """
               :""" + fds.LABEL_RB_CH_ALARMS_4 + """ ,
               :""" + fds.LABEL_RB_CH_FAULTS_4 + """ ,
               :""" + fds.LABEL_RB_HOURMETER_HI + """ ,
-              :""" + fds.LABEL_RB_ADC_VB + """ ,
+              :""" + fds.LABEL_RB_VB + """ ,
               :""" + fds.LABEL_RB_ADC_VCH_4 + """ ,
               :""" + fds.LABEL_RB_ADC_VCH_1 + """ ,
               :""" + fds.LABEL_RB_ADC_VCH_2 + """ ,

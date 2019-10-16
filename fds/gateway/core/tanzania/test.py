@@ -4,6 +4,7 @@ import time
 import sys
 import requests
 import json
+import os
 import eventlet
 eventlet.monkey_patch()
 
@@ -340,7 +341,7 @@ def printInit():
 def parseParameters():
 	print('parse parameters ...')
 
-def
+
 
 
 def main():
