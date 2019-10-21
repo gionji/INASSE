@@ -376,7 +376,7 @@ def main():
 						help='Set the board name')
 
 	parser.add_argument('--remote-sync-disabled',
-						'-r',
+						'-R',
 						action='store_true',
 						default=False,
 						dest='isRemoteSyncDisabled',
