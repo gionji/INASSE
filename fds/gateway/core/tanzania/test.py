@@ -18,10 +18,10 @@ import FdsDbConstants	  as FdsDB
 
 import FdsCommon as fds
 
+import from losantmqtt import Device
+
 # lo uso per test sul cartone, visto che ora gli schetch sono quelli vecchi a 4 MCU
 #import FdsSensorUnico4mcu  as FdsSS4Mcu
-
-
 IS_RUNNING = True
 IS_PAUSED = False
 
@@ -46,6 +46,14 @@ DEFAULT_DATABASE_PATH_C23 = '/www/'
 DEFAULT_DATABASE_PATH_NEO = './'
 DEFAULT_REMOTE_SERVER_URL = 'http://ec2-54-214-112-214.us-west-2.compute.amazonaws.com'
 
+
+################ LOSANT ####################################
+
+DEVICE_ID     = '5dd3b9ee9285680007ea7a76'
+ACCESS_KEY    = '9a517ec4-8ad0-4f55-bd76-251d52aa3c87'
+ACCESS_SECRET = '6ea5f8f4ce682619feb8007ec4a6b8ddc679453ceb64642b4acea757fcdd645b'
+
+############################################################
 
 
 
@@ -342,6 +350,9 @@ def parseParameters():
 	print('parse parameters ...')
 
 
+def sendDeviceStateToLosant( device, json_state ):
+	print("Sending Device State")
+	device.send_state( json_state )
 
 
 def main():
@@ -542,6 +553,18 @@ def main():
 	except Exception as e:
 		print(e)
 
+
+	## initialize Losant dbConnection
+	# Construct Losant device
+
+	device = Device(DEVICE_ID, ACCESS_KEY, ACCESS_SECRET)
+
+	try:
+		device.connect(blocking=False)
+	except:
+		device = None
+		print('Error connectiong losant')
+
 	cycle = 0
 
 	while IS_RUNNING:
@@ -600,8 +623,17 @@ def main():
 
 			## Qui in mezzo si possono fare le varie sotto elabrazioni e inviare semmai i dati alla fine
 
+			## creo un dictionary con tutti i valori per passarlo al Device losant
+			json_state = dict()
+			if dataCC is not None: json_state.update(dataCC)
+			if dataRB is not None: json_state.update(dataRB)
+			if dataRS is not None: json_state.update(dataRS)
+			if dataMCU is not None: json_state.update(dataMCU)
 
-
+			try:
+				sendDeviceStateToLosant(device, json_state)
+			except:
+				print("Error updating Losant state.")
 
 			## save data to local sqlite db:
 			saveDataToDb( dbConnection,
