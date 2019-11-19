@@ -6,7 +6,7 @@ import requests
 import json
 import os
 import eventlet
-eventlet.monkey_patch()
+#eventlet.monkey_patch()
 
 from argparse import ArgumentParser
 
@@ -18,7 +18,7 @@ import FdsDbConstants	  as FdsDB
 
 import FdsCommon as fds
 
-import from losantmqtt import Device
+from losantmqtt import Device
 
 # lo uso per test sul cartone, visto che ora gli schetch sono quelli vecchi a 4 MCU
 #import FdsSensorUnico4mcu  as FdsSS4Mcu
