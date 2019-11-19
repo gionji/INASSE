@@ -2,6 +2,8 @@ import smbus2
 import struct
 import logging
 
+import FdsCommon as fds
+
 # I2C addressed of Arduinos MCU connected
 I2C_ADDR                  =   0x27
 
@@ -22,21 +24,21 @@ FLOODING_STATUS_REGISTER  =  0x60 # Flooding sensor ( digital input, D7 )
 WATER_LEVEL_REGISTER      =  0x70 # DISTANCE ULTRASOUND SENSOR ( software serial, rxD9 txD10 )
 
 
-TEMP_1_LABEL           =  'temp1' # DS18D20 ( onewire, D5 )
-TEMP_2_LABEL           =  'temp2' # DS18D20 ( onewire, D5 )
-TEMP_3_LABEL           =  'temp3' # DS18D20 ( onewire, D5 )
-PRESSURE_IN_LABEL      =  'pres1' # PRESSURE (analog, A1)
-PRESSURE_OUT_LABEL     =  'pres2' # PRESSURE (analog, A2)
-PRESSURE_MIDDLE_LABEL  =  'pres3' # PRESSURE (analog, A3)
-FLUX_IN_LABEL          =  'flux1' # FLUXMETER ( digital input, D2 )
-FLUX_OUT_LABEL         =  'flux2' # FLUXMETER ( digital input, D3 )
-CC_CURRENT_LABEL       =  'cc' # SHUNT  ( LM358 gain 20, analog, A0  )
-AC1_CURRENT_LABEL      =  'ac1' # SCT013 (analog in A6)
-AC2_CURRENT_LABEL      =  'ac2' # SCT013 (analog in A7)
-DHT11_AIR_LABEL        =  'dht_temp'# DHT11 ( onewire, D6 )
-DHT11_HUMIDITY_LABEL   =  'dht_hum' # DHT11 ( onewire, D6 )
-FLOODING_STATUS_LABEL  =  'flood' # Flooding sensor ( digital input, D7 )
-WATER_LEVEL_LABEL      =  'water_lev' # DISTANCE ULTRASOUND SENSOR ( software serial,
+TEMP_1_LABEL           =  fds.LABEL_MCU_TEMP_1 # DS18D20 ( onewire, D5 )
+TEMP_2_LABEL           =  fds.LABEL_MCU_TEMP_2 # DS18D20 ( onewire, D5 )
+TEMP_3_LABEL           =  fds.LABEL_MCU_TEMP_3 # DS18D20 ( onewire, D5 )
+PRESSURE_IN_LABEL      =  fds.LABEL_MCU_PRESSURE_IN # PRESSURE (analog, A1)
+PRESSURE_OUT_LABEL     =  fds.LABEL_MCU_PRESSURE_OUT # PRESSURE (analog, A2)
+PRESSURE_MIDDLE_LABEL  =  fds.LABEL_MCU_PRESSURE_MIDDLE # PRESSURE (analog, A3)
+FLUX_IN_LABEL          =  fds.LABEL_MCU_FLUX_IN  # FLUXMETER ( digital input, D2 )
+FLUX_OUT_LABEL         =  fds.LABEL_MCU_FLUX_OUT  # FLUXMETER ( digital input, D3 )
+CC_CURRENT_LABEL       =  fds.LABEL_MCU_CC_CURRENT  # SHUNT  ( LM358 gain 20, analog, A0  )
+AC1_CURRENT_LABEL      =  fds.LABEL_MCU_AC1_CURRENT # SCT013 (analog in A6)
+AC2_CURRENT_LABEL      =  fds.LABEL_MCU_AC2_CURRENT # SCT013 (analog in A7)
+DHT11_AIR_LABEL        =  fds.LABEL_MCU_DHT11_AIR  # DHT11 ( onewire, D6 )
+DHT11_HUMIDITY_LABEL   =  fds.LABEL_MCU_DHT11_HUMIDITY  # DHT11 ( onewire, D6 )
+FLOODING_STATUS_LABEL  =  fds.LABEL_MCU_FLOODING_STATUS  # Flooding sensor ( digital input, D7 )
+WATER_LEVEL_LABEL      =  fds.LABEL_MCU_WATER_LEVEL # DISTANCE ULTRASOUND SENSOR ( software serial,
 
 
 # i2c bus number depending on the hardware

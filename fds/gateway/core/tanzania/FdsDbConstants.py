@@ -1,4 +1,4 @@
-import FdsCommon as labels
+import FdsCommon as fds
 
 
 SQLITE_FILENAME = 'DB_fds_offgridbox.sqlite'
@@ -11,45 +11,47 @@ CC_STATE = ['Start', 'Night Check', 'Disconnected', 'Night', 'Fault!', 'MPPT', '
 sql_create_charge_controller_table = """ CREATE TABLE IF NOT EXISTS charge_controller (
                                         id           integer PRIMARY KEY,
                                         timestamp    date    NOT NULL,
-                                        battsV       float   NOT NULL,
-                                        battsSensedV float   NOT NULL,
-                                        battsI       float   NOT NULL,
-                                        arrayV       float   NOT NULL,
-                                        arrayI       float   NOT NULL,
-                                        statenum     integer NOT NULL,
-                                        hsTemp       float   NOT NULL,
-                                        rtsTemp      float   NOT NULL,
-                                        outPower     float   NOT NULL,
-                                        inPower      float   NOT NULL,
-                                        minVb_daily  float   NOT NULL,
-                                        maxVb_daily  float   NOT NULL,
-                                        minTb_daily  float   NOT NULL,
-                                        maxTb_daily  float   NOT NULL,
-                                        dipswitches  text    NOT NULL,
+                                        """ + fds.LABEL_CC_BATTS_V + """     float   NOT NULL,
+                                        """ + fds.LABEL_CC_BATT_SENSED_V + """ float   NOT NULL,
+                                        """ + fds.LABEL_CC_BATTS_I + """        float   NOT NULL,
+                                        """ + fds.LABEL_CC_ARRAY_V + """        float   NOT NULL,
+                                        """ + fds.LABEL_CC_ARRAY_I + """        float   NOT NULL,
+                                        """ + fds.LABEL_CC_STATENUM + """      integer NOT NULL,
+                                        """ + fds.LABEL_CC_HS_TEMP + """        float   NOT NULL,
+                                        """ + fds.LABEL_CC_RTS_TEMP + """       float   NOT NULL,
+                                        """ + fds.LABEL_CC_OUT_POWER + """      float   NOT NULL,
+                                        """ + fds.LABEL_CC_IN_POWER + """       float   NOT NULL,
+                                        """ + fds.LABEL_CC_MINVB_DAILY + """   float   NOT NULL,
+                                        """ + fds.LABEL_CC_MAXVB_DAILY + """   float   NOT NULL,
+                                        """ + fds.LABEL_CC_MINTB_DAILY + """   float   NOT NULL,
+                                        """ + fds.LABEL_CC_MAXTB_DAILY + """   float   NOT NULL,
+                                        """ + fds.LABEL_CC_DIPSWITCHES + """   text    NOT NULL,
                                         synced       integer(1) default 0
                                     ); """
+
+
 
 sql_create_relaybox_table = """ CREATE TABLE IF NOT EXISTS relay_box (
                                         id            integer PRIMARY KEY,
                                         timestamp     date    NOT NULL,
-                                        adc_vb        float   NOT NULL,
-                                        adc_vch_1     float   NOT NULL,
-                                        adc_vch_2     float   NOT NULL,
-                                        adc_vch_3     float   NOT NULL,
-                                        adc_vch_4     float   NOT NULL,
-                                        t_mod         float   NOT NULL,
-                                        global_faults integer NOT NULL,
-                                        global_alarms integer NOT NULL,
-                                        hourmeter_HI  float   NOT NULL,
-                                        hourmeter_LO  float   NOT NULL,
-                                        ch_faults_1   integer NOT NULL,
-                                        ch_faults_2   integer NOT NULL,
-                                        ch_faults_3   integer NOT NULL,
-                                        ch_faults_4   integer NOT NULL,
-                                        ch_alarms_1   integer NOT NULL,
-                                        ch_alarms_2   integer NOT NULL,
-                                        ch_alarms_3   integer NOT NULL,
-                                        ch_alarms_4   integer NOT NULL,
+                                        """ + fds.LABEL_RB_VB + """         float   NOT NULL,
+                                        """ + fds.LABEL_RB_ADC_VCH_1 + """      float   NOT NULL,
+                                        """ + fds.LABEL_RB_ADC_VCH_2 + """      float   NOT NULL,
+                                        """ + fds.LABEL_RB_ADC_VCH_3 + """      float   NOT NULL,
+                                        """ + fds.LABEL_RB_ADC_VCH_4 + """      float   NOT NULL,
+                                        """ + fds.LABEL_RB_T_MOD + """          float   NOT NULL,
+                                        """ + fds.LABEL_RB_GLOBAL_FAULTS + """  integer NOT NULL,
+                                        """ + fds.LABEL_RB_GLOBAL_ALARMS + """  integer NOT NULL,
+                                        """ + fds.LABEL_RB_HOURMETER_HI + """   float   NOT NULL,
+                                        """ + fds.LABEL_RB_HOURMETER_LO + """   float   NOT NULL,
+                                        """ + fds.LABEL_RB_CH_FAULTS_1 + """    integer NOT NULL,
+                                        """ + fds.LABEL_RB_CH_FAULTS_2 + """    integer NOT NULL,
+                                        """ + fds.LABEL_RB_CH_FAULTS_3 + """    integer NOT NULL,
+                                        """ + fds.LABEL_RB_CH_FAULTS_4 + """    integer NOT NULL,
+                                        """ + fds.LABEL_RB_CH_ALARMS_1 + """    integer NOT NULL,
+                                        """ + fds.LABEL_RB_CH_ALARMS_2 + """    integer NOT NULL,
+                                        """ + fds.LABEL_RB_CH_ALARMS_3 + """    integer NOT NULL,
+                                        """ + fds.LABEL_RB_CH_ALARMS_4 + """    integer NOT NULL,
                                         synced        integer(1) default 0
                                     ); """
 
@@ -57,51 +59,51 @@ sql_create_relaybox_table = """ CREATE TABLE IF NOT EXISTS relay_box (
 sql_create_relay_state_table = """ CREATE TABLE IF NOT EXISTS relay_state (
                                         id integer PRIMARY KEY,
                                         timestamp     date    NOT NULL,
-                                        relay_1   integer     NOT NULL,
-                                        relay_2   integer     NOT NULL,
-                                        relay_3   integer     NOT NULL,
+                                        """ + fds.LABEL_RS_RELAY_1 + """    integer     NOT NULL,
+                                        """ + fds.LABEL_RS_RELAY_2 + """    integer     NOT NULL,
+                                        """ + fds.LABEL_RS_RELAY_3 + """    integer     NOT NULL,
                                         synced    integer(1)  default 0
                                     ); """
 
 
 
 # complete query
-'''
-sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu (
+
+sql_create_mcu_table_complete = """ CREATE TABLE IF NOT EXISTS mcu (
                                         id          integer     PRIMARY KEY,
                                         timestamp   date        NOT NULL,
-                                        temp1       float       NOT NULL,
-                                        temp2       float       NOT NULL,
-                                        temp3       float       NOT NULL,
-                                        pres1       float       NOT NULL,
-                                        pres2       float       NOT NULL,
-                                        pres3       float       NOT NULL,
-                                        flux1       integer     NOT NULL,
-                                        flux2       integer     NOT NULL,
-                                        cc          float       NOT NULL,
-                                        ac1         float       NOT NULL,
-                                        ac2         float       NOT NULL,
-                                        dht_temp    float       NOT NULL,
-                                        dht_hum     float       NOT NULL,
-                                        flood       integer     NOT NULL,
-                                        water_lev   integer     NOT NULL,
+                                        """ + fds.LABEL_MCU_TEMP_1 + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_TEMP_2 + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_TEMP_3 + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_PRESSURE_IN + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_PRESSURE_OUT + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_PRESSURE_MIDDLE + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_FLUX_IN + """        integer     NOT NULL,
+                                        """ + fds.LABEL_MCU_FLUX_OUT + """        integer     NOT NULL,
+                                        """ + fds.LABEL_MCU_CC_CURRENT + """           float       NOT NULL,
+                                        """ + fds.LABEL_MCU_AC1_CURRENT + """          float       NOT NULL,
+                                        """ + fds.LABEL_MCU_AC2_CURRENT + """          float       NOT NULL,
+                                        """ + fds.LABEL_MCU_DHT11_AIR + """     float       NOT NULL,
+                                        """ + fds.LABEL_MCU_DHT11_HUMIDITY + """      float       NOT NULL,
+                                        """ + fds.LABEL_MCU_FLOODING_STATUS + """        integer     NOT NULL,
+                                        """ + fds.LABEL_MCU_WATER_LEVEL + """    integer     NOT NULL,
                                         synced      integer(1)  default 0
                                     ); """
-'''
+
 
 sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu (
                                         id          integer     PRIMARY KEY,
                                         timestamp   date        NOT NULL,
-                                        temp1       float       NOT NULL,
-                                        temp2       float       NOT NULL,
-                                        pres1       float       NOT NULL,
-                                        pres2       float       NOT NULL,
-                                        pres3       float       NOT NULL,
-                                        flux1       integer     NOT NULL,
-                                        flux2       integer     NOT NULL,
-                                        cc          float       NOT NULL,
-                                        ac1         float       NOT NULL,
-                                        ac2         float       NOT NULL,
+                                        """ + fds.LABEL_MCU_TEMP_1 + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_TEMP_2 + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_PRESSURE_IN + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_PRESSURE_OUT + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_PRESSURE_MIDDLE + """        float       NOT NULL,
+                                        """ + fds.LABEL_MCU_FLUX_IN + """        integer     NOT NULL,
+                                        """ + fds.LABEL_MCU_FLUX_OUT + """        integer     NOT NULL,
+                                        """ + fds.LABEL_MCU_CC_CURRENT + """           float       NOT NULL,
+                                        """ + fds.LABEL_MCU_AC1_CURRENT + """          float       NOT NULL,
+                                        """ + fds.LABEL_MCU_AC2_CURRENT + """          float       NOT NULL,
                                         synced      integer(1)  default 0
                                     ); """
 
@@ -113,29 +115,29 @@ sql_create_mcu_table = """ CREATE TABLE IF NOT EXISTS mcu (
 insert_mcu = """
             INSERT INTO mcu (
             id,
-            temp1,
-            temp2,
-            pres1,
-            pres2,
-            pres3,
-            flux1,
-            flux2,
-            cc,
-            ac1,
-            ac2,
+            """ + fds.LABEL_MCU_TEMP_1 + """ ,
+            """ + fds.LABEL_MCU_TEMP_2 + """ ,
+            """ + fds.LABEL_MCU_PRESSURE_IN + """ ,
+            """ + fds.LABEL_MCU_PRESSURE_OUT + """ ,
+            """ + fds.LABEL_MCU_PRESSURE_MIDDLE + """ ,
+            """ + fds.LABEL_MCU_FLUX_IN + """ ,
+            """ + fds.LABEL_MCU_FLUX_OUT + """ ,
+            """ + fds.LABEL_MCU_CC_CURRENT + """ ,
+            """ + fds.LABEL_MCU_AC1_CURRENT + """ ,
+            """ + fds.LABEL_MCU_AC2_CURRENT + """ ,
             timestamp
         ) VALUES (
             NULL,
-            :temp1,
-            :temp2,
-            :pres1,
-            :pres2,
-            :pres3,
-            :flux1,
-            :flux2,
-            :cc,
-            :ac1,
-            :ac2,
+            :""" + fds.LABEL_MCU_TEMP_1 + """ ,
+            :""" + fds.LABEL_MCU_TEMP_2 + """ ,
+            :""" + fds.LABEL_MCU_PRESSURE_IN + """ ,
+            :""" + fds.LABEL_MCU_PRESSURE_OUT + """ ,
+            :""" + fds.LABEL_MCU_PRESSURE_MIDDLE + """ ,
+            :""" + fds.LABEL_MCU_FLUX_IN + """ ,
+            :""" + fds.LABEL_MCU_FLUX_OUT + """ ,
+            :""" + fds.LABEL_MCU_CC_CURRENT + """ ,
+            :""" + fds.LABEL_MCU_AC1_CURRENT + """ ,
+            :""" + fds.LABEL_MCU_AC2_CURRENT + """ ,
             datetime('now')
         );
              """
@@ -144,46 +146,46 @@ insert_mcu = """
 insert_relay_box = """
             INSERT INTO relay_box (
               id,
-              ch_alarms_3,
-              hourmeter_LO,
-              ch_faults_1,
-              ch_alarms_1,
-              ch_faults_3,
-              ch_faults_2,
-              ch_alarms_4,
-              ch_faults_4,
-              hourmeter_HI,
-              adc_vb,
-              adc_vch_4,
-              adc_vch_1,
-              adc_vch_2,
-              adc_vch_3,
-              t_mod,
-              global_faults,
-              global_alarms,
-              ch_alarms_2 ,
+              """ + fds.LABEL_RB_CH_ALARMS_3 + """ ,
+              """ + fds.LABEL_RB_HOURMETER_LO + """ ,
+              """ + fds.LABEL_RB_CH_FAULTS_1 + """ ,
+              """ + fds.LABEL_RB_CH_ALARMS_1 + """ ,
+              """ + fds.LABEL_RB_CH_FAULTS_3 + """ ,
+              """ + fds.LABEL_RB_CH_FAULTS_2 + """ ,
+              """ + fds.LABEL_RB_CH_ALARMS_4 + """ ,
+              """ + fds.LABEL_RB_CH_FAULTS_4 + """ ,
+              """ + fds.LABEL_RB_HOURMETER_HI + """ ,
+              """ + fds.LABEL_RB_VB + """ ,
+              """ + fds.LABEL_RB_ADC_VCH_4 + """ ,
+              """ + fds.LABEL_RB_ADC_VCH_1 + """ ,
+              """ + fds.LABEL_RB_ADC_VCH_2 + """ ,
+              """ + fds.LABEL_RB_ADC_VCH_3 + """ ,
+              """ + fds.LABEL_RB_T_MOD + """ ,
+              """ + fds.LABEL_RB_GLOBAL_FAULTS + """ ,
+              """ + fds.LABEL_RB_GLOBAL_ALARMS + """ ,
+              """ + fds.LABEL_RB_CH_ALARMS_2 + """  ,
               timestamp
               )
             VALUES (
               NULL,
-              :ch_alarms_3,
-              :hourmeter_LO,
-              :ch_faults_1,
-              :ch_alarms_1,
-              :ch_faults_3,
-              :ch_faults_2,
-              :ch_alarms_4,
-              :ch_faults_4,
-              :hourmeter_HI,
-              :adc_vb,
-              :adc_vch_4,
-              :adc_vch_1,
-              :adc_vch_2,
-              :adc_vch_3,
-              :t_mod,
-              :global_faults,
-              :global_alarms,
-              :ch_alarms_2,
+              :""" + fds.LABEL_RB_CH_ALARMS_3 + """ ,
+              :""" + fds.LABEL_RB_HOURMETER_LO + """ ,
+              :""" + fds.LABEL_RB_CH_FAULTS_1 + """ ,
+              :""" + fds.LABEL_RB_CH_ALARMS_1 + """ ,
+              :""" + fds.LABEL_RB_CH_FAULTS_3 + """ ,
+              :""" + fds.LABEL_RB_CH_FAULTS_2 + """ ,
+              :""" + fds.LABEL_RB_CH_ALARMS_4 + """ ,
+              :""" + fds.LABEL_RB_CH_FAULTS_4 + """ ,
+              :""" + fds.LABEL_RB_HOURMETER_HI + """ ,
+              :""" + fds.LABEL_RB_VB + """ ,
+              :""" + fds.LABEL_RB_ADC_VCH_4 + """ ,
+              :""" + fds.LABEL_RB_ADC_VCH_1 + """ ,
+              :""" + fds.LABEL_RB_ADC_VCH_2 + """ ,
+              :""" + fds.LABEL_RB_ADC_VCH_3 + """ ,
+              :""" + fds.LABEL_RB_T_MOD + """ ,
+              :""" + fds.LABEL_RB_GLOBAL_FAULTS + """ ,
+              :""" + fds.LABEL_RB_GLOBAL_ALARMS + """ ,
+              :""" + fds.LABEL_RB_CH_ALARMS_2 + """ ,
               datetime('now')
               );
             """
@@ -191,40 +193,40 @@ insert_relay_box = """
 insert_charge_controller = """
             INSERT INTO charge_controller (
                id,
-               outPower,
-               minTb_daily,
-               dipswitches,
-               arrayV,
-               minVb_daily,
-               arrayI,
-               battsSensedV,
-               statenum,
-               maxTb_daily,
-               battsI,
-               battsV,
-               rtsTemp,
-               inPower,
-               maxVb_daily,
-               hsTemp,
+               """ + fds.LABEL_CC_OUT_POWER + """ ,
+               """ + fds.LABEL_CC_MINTB_DAILY + """ ,
+               """ + fds.LABEL_CC_DIPSWITCHES + """ ,
+               """ + fds.LABEL_CC_ARRAY_V + """ ,
+               """ + fds.LABEL_CC_MINVB_DAILY + """ ,
+               """ + fds.LABEL_CC_ARRAY_I + """ ,
+               """ + fds.LABEL_CC_BATT_SENSED_V + """,
+               """ + fds.LABEL_CC_STATENUM + """ ,
+               """ + fds.LABEL_CC_MAXTB_DAILY + """ ,
+               """ + fds.LABEL_CC_BATTS_I + """ ,
+               """ + fds.LABEL_CC_BATTS_V + """,
+               """ + fds.LABEL_CC_RTS_TEMP + """ ,
+               """ + fds.LABEL_CC_IN_POWER + """ ,
+               """ + fds.LABEL_CC_MAXVB_DAILY + """ ,
+               """ + fds.LABEL_CC_HS_TEMP + """ ,
                timestamp
                )
             VALUES (
               NULL,
-              :outPower,
-              :minTb_daily,
-              :dipswitches,
-              :arrayV,
-              :minVb_daily,
-              :arrayI,
-              :battsSensedV,
-              :statenum,
-              :maxTb_daily,
-              :battsI,
-              :battsV,
-              :rtsTemp,
-              :inPower,
-              :maxVb_daily,
-              :hsTemp,
+              :""" + fds.LABEL_CC_OUT_POWER + """ ,
+              :""" + fds.LABEL_CC_MINTB_DAILY + """ ,
+              :""" + fds.LABEL_CC_DIPSWITCHES + """ ,
+              :""" + fds.LABEL_CC_ARRAY_V + """ ,
+              :""" + fds.LABEL_CC_MINVB_DAILY + """ ,
+              :""" + fds.LABEL_CC_ARRAY_I + """ ,
+              :""" + fds.LABEL_CC_BATT_SENSED_V + """,
+              :""" + fds.LABEL_CC_STATENUM + """ ,
+              :""" + fds.LABEL_CC_MAXTB_DAILY + """ ,
+              :""" + fds.LABEL_CC_BATTS_I + """ ,
+              :""" + fds.LABEL_CC_BATTS_V + """,
+              :""" + fds.LABEL_CC_RTS_TEMP + """ ,
+              :""" + fds.LABEL_CC_IN_POWER + """ ,
+              :""" + fds.LABEL_CC_MAXVB_DAILY + """ ,
+              :""" + fds.LABEL_CC_HS_TEMP + """ ,
               datetime('now')
               );
             """
@@ -232,49 +234,16 @@ insert_charge_controller = """
 insert_relay_state = """
                      INSERT INTO relay_state (
                         id,
-                        relay_1,
-                        relay_2,
-                        relay_3,
+                        """ + fds.LABEL_RS_RELAY_1 + """ ,
+                        """ + fds.LABEL_RS_RELAY_2 + """ ,
+                        """ + fds.LABEL_RS_RELAY_3 + """ ,
                         timestamp
                         )
                      VALUES (
                         NULL,
-                        :relay_1,
-                        :relay_2,
-                        :relay_3,
+                        :""" + fds.LABEL_RS_RELAY_1 + """ ,
+                        :""" + fds.LABEL_RS_RELAY_2 + """ ,
+                        :""" + fds.LABEL_RS_RELAY_3 + """ ,
                         datetime('now')
                         );
                      """
-
-
-
-### QUERIES TO READ DATA BACK FROM SQLITE
-GET_CC_DATA_IDS  = '''SELECT id FROM charge_controller WHERE synced = 0 LIMIT 300; '''
-GET_RB_DATA_IDS  = '''SELECT id FROM relay_box         WHERE synced = 0 LIMIT 300; '''
-GET_RS_DATA_IDS  = '''SELECT id FROM relay_state       WHERE synced = 0 LIMIT 300; '''
-GET_MCU_DATA_IDS = '''SELECT id FROM mcu               WHERE synced = 0 LIMIT 300; '''
-
-GET_CC_DATA  = '''SELECT timestamp, battsV, battsSensedV, battsI, arrayV, arrayI, statenum,
-                         hsTemp, rtsTemp, outPower, inPower, minVb_daily, maxVb_daily,
-                         minTb_daily,  maxTb_daily, dipswitches
-                  FROM charge_controller
-                  WHERE id IN ('''
-
-
-GET_RB_DATA  = '''SELECT timestamp, adc_vb, adc_vch_1, adc_vch_2, adc_vch_3, adc_vch_4,
-                         t_mod, global_faults, global_alarms, hourmeter_HI, hourmeter_LO,
-                         ch_faults_1, ch_faults_2, ch_faults_3, ch_faults_4,
-                         ch_alarms_1, ch_alarms_2, ch_alarms_3, ch_alarms_4
-                  FROM relay_box
-                  WHERE id IN ('''
-
-
-GET_RS_DATA  = '''SELECT timestamp, relay_1, relay_2, relay_3
-                  FROM relay_state
-                  WHERE id IN ('''
-
-
-GET_MCU_DATA = '''SELECT timestamp, brick_baro_pres, brick_temp, brick_baro_temp, brick_light, brick_hum,
-                         a0, a1, a2, a3, a4, a5
-                  FROM mcu
-                  WHERE id IN ('''

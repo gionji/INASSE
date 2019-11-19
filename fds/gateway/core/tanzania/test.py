@@ -4,6 +4,7 @@ import time
 import sys
 import requests
 import json
+import os
 import eventlet
 eventlet.monkey_patch()
 
@@ -14,6 +15,8 @@ sys.dont_write_bytecode = True
 import FdsChargeController as FdsCC
 import FdsSensorUnico	  as FdsSS
 import FdsDbConstants	  as FdsDB
+
+import FdsCommon as fds
 
 # lo uso per test sul cartone, visto che ora gli schetch sono quelli vecchi a 4 MCU
 #import FdsSensorUnico4mcu  as FdsSS4Mcu
@@ -27,18 +30,16 @@ DATABASE = None
 BOARD_ID = None
 REMOTE_SYNC_TIMEOUT = None
 
-COMMAND_INPUT_FILE = './fdscmd'
-
 ############# DEFAULTS ####################################
 DEFAULT_MODBUS_IP = '192.168.2.253'
 DEFAULT_READ_CYCLES_BEFORE_SYNC = 6
-DEFAULT_DELAY_BETWEEN_READINGS = 10.0
+DEFAULT_DELAY_BETWEEN_READINGS  = 10.0
 
-DEFAULT_MCU_MAX_ATTEMPTS = 10
-DEFAULT_REMOTE_SYNC_TIMEOUT = 60
+DEFAULT_MCU_MAX_ATTEMPTS        = 10
+DEFAULT_REMOTE_SYNC_TIMEOUT     = 60
 
-DEFAULT_RESET_GPIO_NEO = 39
-DEFAULT_RESET_GPIO_C23 = 149
+DEFAULT_RESET_GPIO_NEO          = 39
+DEFAULT_RESET_GPIO_C23          = 149
 
 DEFAULT_REMOTE_SERVER_IP = None
 DEFAULT_DATABASE_PATH_C23 = '/www/'
@@ -333,11 +334,24 @@ def saveErrorToTelemetryFile(path, error):
 		json.dump(error, fp)
 
 
-def main():
-	print("INASSE OffGridBox v0.2")
+def printInit():
+	print('Inasse. ....')
 
-	DATABASE_PATH = '/www/'
-	TELEMETRY_PATH = './syntetics/'
+
+def parseParameters():
+	print('parse parameters ...')
+
+
+
+
+def main():
+	print("INASSE OfGridBox v0.5 - tanzania")
+
+	CWD = os.getcwd()
+
+	DATABASE_PATH      = '/www/'
+	TELEMETRY_PATH     = CWD + '/syntetics/'
+	COMMAND_INPUT_FILE = CWD + '/fdscmd'
 
 	parser = ArgumentParser()
 
@@ -362,7 +376,7 @@ def main():
 						help='Set the board name')
 
 	parser.add_argument('--remote-sync-disabled',
-						'-r',
+						'-R',
 						action='store_true',
 						default=False,
 						dest='isRemoteSyncDisabled',
@@ -512,14 +526,15 @@ def main():
 	arduino  = None
 	# arduinos = None
 
+
+	## initialize the MCU object
 	try:
-		# initialize the MCU object
 		arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE, busId = BUS_I2C)
 	except Exception as e:
 		print(e)
 
+	## initialize the ChargeController and Relaybox
 	try:
-		# ci metto l'indirizzo ma ora se ne fotte, quello che conta e' quello che passo dopo
 		chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, isDebug = IS_MODBUS_IN_DEBUG_MODE )
 
 		chargeController.connect()
@@ -530,11 +545,10 @@ def main():
 	cycle = 0
 
 	while IS_RUNNING:
-
-	#	processCommand(COMMAND_INPUT_FILE)
+		## check if there are commands in cmd file and change local vaiables
+		processCommand(COMMAND_INPUT_FILE)
 
 		if not IS_PAUSED:
-
 			print("Sensors reading " + str( cycle ))
 
 			try:
@@ -569,11 +583,12 @@ def main():
 					mcuData = None
 					print("I2C read attempt " + str(attempt) + ": FAIL  " + str(e))
 
-
+			## if after all the cycles the mcu is stuck try reset
 			if(mcuData == None):
 				print("MCU RESET: MCU i2c probably stuck!")
 				resetMcu( BOARD_TYPE, RESET_PIN )
 
+			## print the readed rata
 			if 'm' in PRINT:
 				printData("MCU", mcuData)
 			if 'c' in PRINT:
@@ -583,19 +598,23 @@ def main():
 			if 's' in PRINT:
 				printData("RS", dataRS)
 
-			## save data to local sqlite db
+			## Qui in mezzo si possono fare le varie sotto elabrazioni e inviare semmai i dati alla fine
+
+
+
+
+			## save data to local sqlite db:
 			saveDataToDb( dbConnection,
 					dataCC,
 					dataRB,
 					dataRS,
 					mcuData)
 
-		#	saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
+			## send data to telemetry
+			saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
 
 			cycle = cycle + 1
-
 			time.sleep( DELAY_BETWEEN_READINGS )
-
 
 			## syncronize data
 			if cycle == READ_CYCLES_BEFORE_SYNC:

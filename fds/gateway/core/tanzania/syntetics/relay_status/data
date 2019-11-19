@@ -1,1 +1,1 @@
-{"type": "relayState", "relay_1": 1, "relay_2": 1, "relay_3": 1, "relay_4": 0, "relay_5": 0, "relay_6": 0, "relay_7": 0, "relay_8": 0}
+{"type": "relayState", "relay_1": true, "relay_2": true, "relay_3": true, "relay_4": false, "relay_5": false, "relay_6": false, "relay_7": false, "relay_8": false}
