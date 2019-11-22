@@ -628,7 +628,7 @@ def main():
 			if dataCC is not None: json_state.update(dataCC)
 			if dataRB is not None: json_state.update(dataRB)
 			if dataRS is not None: json_state.update(dataRS)
-			if dataMCU is not None: json_state.update(dataMCU)
+			if mcuData is not None: json_state.update(mcuData)
 
 			try:
 				sendDeviceStateToLosant(device, json_state)
