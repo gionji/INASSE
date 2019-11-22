@@ -6,7 +6,7 @@ import requests
 import json
 import os
 import eventlet
-eventlet.monkey_patch()
+#eventlet.monkey_patch()
 
 from argparse import ArgumentParser
 
@@ -18,7 +18,7 @@ import FdsDbConstants	  as FdsDB
 
 import FdsCommon as fds
 
-import from losantmqtt import Device
+from losantmqtt import Device
 
 # lo uso per test sul cartone, visto che ora gli schetch sono quelli vecchi a 4 MCU
 #import FdsSensorUnico4mcu  as FdsSS4Mcu
@@ -561,9 +561,8 @@ def main():
 
 	try:
 		device.connect(blocking=False)
-	except:
-		device = None
-		print('Error connectiong losant')
+	except Exception as e:
+		device = None; print('Error connectiong losant: ' + str(e))
 
 	cycle = 0
 
@@ -596,24 +595,24 @@ def main():
 			## get Data from MCUs
 			for attempt in range(0, MCU_MAX_ATTEMPTS):
 				# initialize the data structure for MCU da
-				mcuData = dict()
+				dataMCU = dict()
 
 				try:
-					mcuData  = arduino.getMcuData()
+					dataMCU  = arduino.getMcuData()
 					print("I2C read attempt " + str(attempt) + ": ok")
 					break
 				except Exception as e:
-					mcuData = None
+					dataMCU = None
 					print("I2C read attempt " + str(attempt) + ": FAIL  " + str(e))
 
 			## if after all the cycles the mcu is stuck try reset
-			if(mcuData == None):
+			if(dataMCU == None):
 				print("MCU RESET: MCU i2c probably stuck!")
 				resetMcu( BOARD_TYPE, RESET_PIN )
 
 			## print the readed rata
 			if 'm' in PRINT:
-				printData("MCU", mcuData)
+				printData("MCU", dataMCU)
 			if 'c' in PRINT:
 				printData("CC", dataCC)
 			if 'r' in PRINT:
@@ -640,10 +639,10 @@ def main():
 					dataCC,
 					dataRB,
 					dataRS,
-					mcuData)
+					dataMCU)
 
 			## send data to telemetry
-			saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
+			saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, dataMCU)
 
 			cycle = cycle + 1
 			time.sleep( DELAY_BETWEEN_READINGS )
