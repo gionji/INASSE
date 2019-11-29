@@ -41,6 +41,8 @@
 #define EVENT_GET_TEMP_PANEL_2     0x14
 #define EVENT_GET_TEMP_ENV         0x18
 
+#define EVENT_GET_TEMP_PANEL_3         0x18
+
 #define EVENT_GET_PRESSURE_IN      0x20
 #define EVENT_GET_PRESSURE_OUT     0x24
 #define EVENT_GET_PRESSURE_MIDDLE  0x28
@@ -84,6 +86,7 @@ uint8_t VALUE_FIRMWARE_VERSION = (uint8_t) FIRMWARE_VERSION;
  
 float VALUE_TEMP_PANEL_1       = 0;
 float VALUE_TEMP_PANEL_2       = 0;
+float VALUE_TEMP_PANEL_3       = 0;
 
 float VALUE_PRESSURE_IN        = 0;
 float VALUE_PRESSURE_OUT       = 0;
@@ -116,7 +119,7 @@ volatile int int0count = 0, int1count = 0;
 
 OneWire  ds(TEMP_ONE_WIRE_BUS);
 DallasTemperature sensors(&ds);
-float tempPanel1, tempPanel2, tempEnv;
+float tempPanel1, tempPanel2,tempPanel3, tempEnv;
 int pressureIn, pressureOut, pressureMiddle, fluxIn, fluxOut, waterLevel;
 EnergyMonitor acOutput1; 
 EnergyMonitor acOutput2;
@@ -173,6 +176,9 @@ void loop() {
 
 	tempPanel1    = sensors.getTempCByIndex(0);
 	tempPanel2    = sensors.getTempCByIndex(1);
+  tempPanel3    = sensors.getTempCByIndex(2);
+
+  tempEnv = tempPanel3;
   
   pressureIn     = analogRead(PRESSURE_IN_PIN);
   pressureOut    = analogRead(PRESSURE_OUT_PIN);
@@ -200,6 +206,7 @@ void loop() {
   
   VALUE_TEMP_PANEL_1 = (float)  tempPanel1;
   VALUE_TEMP_PANEL_2 = (float)  tempPanel2;
+  VALUE_TEMP_PANEL_3 = (float)  tempPanel3;
 	VALUE_FLUX_IN      = (int) fluxIn;
 	VALUE_FLUX_OUT     = (int) fluxOut;
 	VALUE_PRESSURE_IN  = (float) pressureIn;
@@ -280,6 +287,24 @@ void requestEvent() {
       b = float2Bytes(VALUE_TEMP_PANEL_2, 3);
       Wire.write( b );
       break;
+      
+    case EVENT_GET_TEMP_PANEL_3 + 0: 
+      b = float2Bytes(VALUE_TEMP_PANEL_3, 0);
+      Wire.write( b );
+      break;
+    case EVENT_GET_TEMP_PANEL_3 + 1:  
+      b = float2Bytes(VALUE_TEMP_PANEL_3, 1);
+      Wire.write( b );
+      break;
+    case EVENT_GET_TEMP_PANEL_3 + 2:  
+      b = float2Bytes(VALUE_TEMP_PANEL_3, 2);
+      Wire.write( b );
+      break;
+    case EVENT_GET_TEMP_PANEL_3+ 3:  
+      b = float2Bytes(VALUE_TEMP_PANEL_3, 3);
+      Wire.write( b );
+      break;
+      
 
     case EVENT_GET_PRESSURE_IN + 0: 
       b = float2Bytes(VALUE_PRESSURE_IN, 0);
