@@ -6,6 +6,7 @@ import requests
 import json
 import os
 import eventlet
+import signal
 #eventlet.monkey_patch()
 
 from argparse import ArgumentParser
@@ -355,6 +356,14 @@ def sendDeviceStateToLosant( device, json_state ):
     device.send_state( json_state )
 
 
+
+def handler_stop_signals(signum, frame):
+    global IS_RUNNING
+    IS_RUNNING = False
+
+
+
+
 def main():
     print("INASSE OfGridBox v0.5 - tanzania")
 
@@ -416,6 +425,13 @@ def main():
                         type=str,
                         help='Set the Charge Controller IP address')
 
+    parser.add_argument('--losant-device-id',
+                        action='store',
+                        default=DEVICE_ID,
+                        dest='losantDeviceId',
+                        type=str,
+                        help='Set the custom Losant device id')
+
 #    parser.add_argument('--modbus-serial-port', action='store', default='/dev/ttymxc2',
 #                   dest='modbusPort', type=str,
 #                   help='Set the Charge Controller RS485 Serial port')
@@ -465,6 +481,7 @@ def main():
     MODBUS_IP               = results.modbusIp
     PRINT                   = results.prints
     IS_REMOTE_SYNC_DISABLED = results.isRemoteSyncDisabled
+    LOSANT_DEVICE_ID        = results.losantDeviceId
 
     BUS_I2C = 1
     BOARD_TYPE = "C23"
@@ -523,8 +540,12 @@ def main():
 
     for i in range(0, 6):
         print('. ', end='', flush=True)
-        time.sleep(0.5)
+        time.sleep(0.1)
 
+    ## handle the SIGNALS from OS
+    signal.signal(signal.SIGINT, handler_stop_signals)
+    signal.signal(signal.SIGTERM, handler_stop_signals)
+    
 
     ## connect to the local db: create a new file if doesn't exists
     dbConnection = sqlite3.connect( DATABASE )
@@ -540,16 +561,16 @@ def main():
 
     ## initialize the MCU object
     try:
+        print('Initializing MCU connection...')
         arduino = FdsSS.FdsSensor(isDebug = IS_MCU_IN_DEBUG_MODE, busId = BUS_I2C)
     except Exception as e:
         print(e)
 
     ## initialize the ChargeController and Relaybox
     try:
+        print('Initializing Charge Controller connection...')
         chargeController = FdsCC.FdsChargeController(FdsCC.MODBUS_ETH, isDebug = IS_MODBUS_IN_DEBUG_MODE )
-
         chargeController.connect()
-
     except Exception as e:
         print(e)
 
@@ -557,9 +578,10 @@ def main():
     ## initialize Losant dbConnection
     # Construct Losant device
 
-    device = Device(DEVICE_ID, ACCESS_KEY, ACCESS_SECRET)
+    device = Device(LOSANT_DEVICE_ID, ACCESS_KEY, ACCESS_SECRET)
 
     try:
+        print('Connecting to Losant...')
         device.connect(blocking=False)
     except:
         device = None
@@ -629,7 +651,8 @@ def main():
             if dataRB is not None: json_state.update(dataRB)
             if dataRS is not None: json_state.update(dataRS)
             if mcuData is not None: json_state.update(mcuData)
-
+            
+            ## Send data to losant
             try:
                 sendDeviceStateToLosant(device, json_state)
             except:
@@ -646,14 +669,21 @@ def main():
             saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
 
             cycle = cycle + 1
-            time.sleep( DELAY_BETWEEN_READINGS )
+            
+            for i in range(0, int( DELAY_BETWEEN_READINGS )):
+                if IS_RUNNING :
+                    time.sleep( 1.0 )
 
             ## syncronize data
             if cycle == READ_CYCLES_BEFORE_SYNC:
                 cycle = 0
                 if DB_SYNC_ENABLED:
                     syncronizeDb( REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT )
+   
 
+    ## quando esco dal ciclo
+    print('Closing Sqlite db connection ...')
+    dbConnection.close()
 
 
 if __name__== "__main__":
