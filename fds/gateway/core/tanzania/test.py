@@ -373,6 +373,8 @@ def main():
 
     CWD = os.getcwd()
 
+    print('Actual path: ', CWD)
+
     DATABASE_PATH      = '/www/'
     TELEMETRY_PATH     = CWD + 'syntetics/'
     COMMAND_INPUT_FILE = CWD + 'fdscmd'
@@ -594,7 +596,8 @@ def main():
 
     while IS_RUNNING:
         ## check if there are commands in cmd file and change local vaiables
-        processCommand(COMMAND_INPUT_FILE)
+        ## todoo
+        #processCommand(COMMAND_INPUT_FILE)
 
         if not IS_PAUSED:
             print("Sensors reading " + str( cycle ))
@@ -671,7 +674,7 @@ def main():
                     mcuData)
 
             ## send data to telemetry
-            saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
+            #saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
 
             cycle = cycle + 1
 
