@@ -7,7 +7,6 @@ import json
 import os
 import eventlet
 import signal
-#eventlet.monkey_patch()
 
 from argparse import ArgumentParser
 
@@ -50,7 +49,12 @@ DEFAULT_REMOTE_SERVER_URL = 'http://ec2-54-214-112-214.us-west-2.compute.amazona
 
 ################ LOSANT ####################################
 
-DEVICE_ID     = '5dd3b9ee9285680007ea7a76'
+# codici temporanei per demos
+DEVICE_ID_SIENA = '5ddfdb7c0ac5cc0007fbffb9'
+DEVICE_ID_AREZZO = '5dd3b9ee9285680007ea7a76'
+
+
+DEVICE_ID     = DEVICE_ID_SIENA
 ACCESS_KEY    = '9a517ec4-8ad0-4f55-bd76-251d52aa3c87'
 ACCESS_SECRET = '6ea5f8f4ce682619feb8007ec4a6b8ddc679453ceb64642b4acea757fcdd645b'
 
@@ -537,7 +541,6 @@ def main():
         print("MCU reset!!")
         resetMcu( BOARD_TYPE, RESET_PIN )
 
-
     for i in range(0, 6):
         print('. ', end='', flush=True)
         time.sleep(0.1)
@@ -557,7 +560,6 @@ def main():
 
     arduino  = None
     # arduinos = None
-
 
     ## initialize the MCU object
     try:
@@ -587,6 +589,7 @@ def main():
         device = None
         print('Error connectiong losant')
 
+
     cycle = 0
 
     while IS_RUNNING:
@@ -601,7 +604,7 @@ def main():
             except Exception as e:
                 dataCC = None
                 print("READING MODBUS CC: " + str(e))
-
+                
             try:
                 dataRB = chargeController.getRelayBoxData()
             except Exception as e:
@@ -628,6 +631,8 @@ def main():
                     mcuData = None
                     print("I2C read attempt " + str(attempt) + ": FAIL  " + str(e))
 
+                    
+                    
             ## if after all the cycles the mcu is stuck try reset
             if(mcuData == None):
                 print("MCU RESET: MCU i2c probably stuck!")
