@@ -370,8 +370,8 @@ def main():
     CWD = os.getcwd()
 
     DATABASE_PATH      = '/www/'
-    TELEMETRY_PATH     = CWD + '/syntetics/'
-    COMMAND_INPUT_FILE = CWD + '/fdscmd'
+    TELEMETRY_PATH     = CWD + 'syntetics/'
+    COMMAND_INPUT_FILE = CWD + 'fdscmd'
 
     parser = ArgumentParser()
 
@@ -545,7 +545,7 @@ def main():
     ## handle the SIGNALS from OS
     signal.signal(signal.SIGINT, handler_stop_signals)
     signal.signal(signal.SIGTERM, handler_stop_signals)
-    
+
 
     ## connect to the local db: create a new file if doesn't exists
     dbConnection = sqlite3.connect( DATABASE )
@@ -651,7 +651,7 @@ def main():
             if dataRB is not None: json_state.update(dataRB)
             if dataRS is not None: json_state.update(dataRS)
             if mcuData is not None: json_state.update(mcuData)
-            
+
             ## Send data to losant
             try:
                 sendDeviceStateToLosant(device, json_state)
@@ -669,7 +669,7 @@ def main():
             saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
 
             cycle = cycle + 1
-            
+
             for i in range(0, int( DELAY_BETWEEN_READINGS )):
                 if IS_RUNNING :
                     time.sleep( 1.0 )
@@ -679,7 +679,7 @@ def main():
                 cycle = 0
                 if DB_SYNC_ENABLED:
                     syncronizeDb( REMOTE_SERVER_URL, DATABASE, BOARD_ID, REMOTE_SYNC_TIMEOUT )
-   
+
 
     ## quando esco dal ciclo
     print('Closing Sqlite db connection ...')
