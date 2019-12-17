@@ -366,6 +366,12 @@ def handler_stop_signals(signum, frame):
     IS_RUNNING = False
 
 
+def onLosantCommand(device, command):
+    print(command["name"] + " command received.")
+
+    if command["name"] == "toggle":
+        # toggle the LED
+        print("boooo")
 
 
 def main():
@@ -581,8 +587,8 @@ def main():
 
     ## initialize Losant dbConnection
     # Construct Losant device
-
     device = Device(LOSANT_DEVICE_ID, ACCESS_KEY, ACCESS_SECRET)
+    device.add_event_observer("command", onLosantCommand)
 
     try:
         print('Connecting to Losant...')
@@ -607,7 +613,7 @@ def main():
             except Exception as e:
                 dataCC = None
                 print("READING MODBUS CC: " + str(e))
-                
+
             try:
                 dataRB = chargeController.getRelayBoxData()
             except Exception as e:
@@ -634,8 +640,8 @@ def main():
                     mcuData = None
                     print("I2C read attempt " + str(attempt) + ": FAIL  " + str(e))
 
-                    
-                    
+
+
             ## if after all the cycles the mcu is stuck try reset
             if(mcuData == None):
                 print("MCU RESET: MCU i2c probably stuck!")
