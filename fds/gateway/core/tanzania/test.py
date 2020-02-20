@@ -53,6 +53,7 @@ DEFAULT_REMOTE_SERVER_URL = 'http://ec2-54-214-112-214.us-west-2.compute.amazona
 DEVICE_ID_SIENA = '5ddfdb7c0ac5cc0007fbffb9'
 DEVICE_ID_AREZZO = '5dd3b9ee9285680007ea7a76'
 
+IS_LOSANT_ENABLED = False
 
 DEVICE_ID     = DEVICE_ID_SIENA
 ACCESS_KEY    = '9a517ec4-8ad0-4f55-bd76-251d52aa3c87'
@@ -667,10 +668,11 @@ def main():
             if mcuData is not None: json_state.update(mcuData)
 
             ## Send data to losant
-            try:
-                sendDeviceStateToLosant(device, json_state)
-            except:
-                print("Error updating Losant state.")
+            if IS_LOSANT_ENABLED:
+                try:
+                    sendDeviceStateToLosant(device, json_state)
+                except:
+                    print("Error updating Losant state.")
 
             ## save data to local sqlite db:
             saveDataToDb( dbConnection,
