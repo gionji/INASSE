@@ -63,13 +63,15 @@ class FdsChargeController():
 
 
 
-    def getChargeControllerData(self):
+
+
+    def getChargeControllerData(self, modbusUnit=CHARGE_CONTROLLER_UNIT):
         data = {'type':'chargecontroller'}
 
         if self.client != None:
             try:
                 # read registers. Start at 0 for convenience
-                rr = self.client.read_holding_registers(0,80, unit=CHARGE_CONTROLLER_UNIT)
+                rr = self.client.read_holding_registers(0,80, unit=modbusUnit)
 
                 # for all indexes, subtract 1 from what's in the manual
                 V_PU_hi = rr.registers[0]
@@ -128,13 +130,13 @@ class FdsChargeController():
 
 
 
-    def getRelayBoxData(self):
+    def getRelayBoxData(self, modbusUnit=RELAYBOX_UNIT):
         data = {'type':'relaybox'}
 
         if self.client != None:
             try:
                 # read registers. Start at 0 for convenience
-                rr = self.client.read_holding_registers(0,18, unit=RELAYBOX_UNIT)
+                rr = self.client.read_holding_registers(0,18, unit=modbusUnit)
                 v_scale = float(78.421 * 2**(-15))
 
                 data[ fds.LABEL_RB_VB     ]        = rr.registers[0] * v_scale
@@ -185,11 +187,11 @@ class FdsChargeController():
 
 
 
-    def getRelayBoxState(self):
+    def getRelayBoxState(self, modbusUnit=RELAYBOX_UNIT):
         data = {'type':'relayState'}
         if self.client != None:
             try:
-                rr = self.client.read_coils(0, 8, unit=RELAYBOX_UNIT)
+                rr = self.client.read_coils(0, 8, unit=modbusUnit)
                 data[ fds.LABEL_RS_RELAY_1 ]   = rr.bits[0]
                 data[ fds.LABEL_RS_RELAY_2 ]   = rr.bits[1]
                 data[ fds.LABEL_RS_RELAY_3 ]   = rr.bits[2]
