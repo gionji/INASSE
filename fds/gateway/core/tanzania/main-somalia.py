@@ -32,7 +32,7 @@ REMOTE_SYNC_TIMEOUT = None
 
 ############# DEFAULTS ####################################
 DEFAULT_MODBUS_IP = '192.168.2.250'
-DEFAULT_CHARGE_CONTROLLER_UNITS = [10]
+DEFAULT_CHARGE_CONTROLLER_UNITS = [10, 20]
 DEFAULT_RELAYBOX_UNITS = [9]
 
 DEFAULT_READ_CYCLES_BEFORE_SYNC = 6
@@ -414,7 +414,7 @@ def main():
     parser.add_argument('--remote-sync-disabled',
                         '-R',
                         action='store_true',
-                        default=False,
+                        default=True,
                         dest='isRemoteSyncDisabled',
                         help='The Arduino is in debug mode. It provides dummy data without access the I2C channel. To test in local machines.')
 
@@ -638,19 +638,27 @@ def main():
             print("Sensors reading " + str( cycle ))
 
             try:
-                dataCC = chargeController.getChargeControllerData(modbusUnit=CHARGE_CONTROLLER_UNITS[0])
+                dataCC = chargeController.getChargeControllerData(modbusUnit=int(CHARGE_CONTROLLER_UNITS[0]))
             except Exception as e:
                 dataCC = None
                 print("READING MODBUS CC: " + str(e))
 
+            
             try:
-                dataRB = chargeController.getRelayBoxData(modbusUnit=RELAY_BOX_UNITS[0])
+                dataCC_2 = chargeController.getChargeControllerData(modbusUnit=int(CHARGE_CONTROLLER_UNITS[1]))
+            except Exception as e:
+                dataCC_2 = None
+                print("READING MODBUS CC_2: " + str(e))
+
+
+            try:
+                dataRB = chargeController.getRelayBoxData(modbusUnit=int(RELAYBOX_UNITS[0]))
             except Exception as e:
                 dataRB = None
                 print("READING MODBUS RB: " + str(e))
 
             try:
-                dataRS = chargeController.getRelayBoxState(modbusUnit=RELAY_BOX_UNITS[0])
+                dataRS = chargeController.getRelayBoxState(modbusUnit=int(RELAYBOX_UNITS[0]))
             except Exception as e:
                 dataRS = None
                 print("READING MODBUS RS: " + str(e))
@@ -681,6 +689,8 @@ def main():
                 printData("MCU", mcuData)
             if 'c' in PRINT:
                 printData("CC", dataCC)
+            if '2' in PRINT:
+                printData("CC_2", dataCC_2)
             if 'r' in PRINT:
                 printData("RB", dataRB)
             if 's' in PRINT:
