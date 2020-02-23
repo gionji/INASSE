@@ -29,19 +29,29 @@ def main():
 
 
     try:
-        chargeController.getChargeControllerData( modbusUnit=10 )
+        cc1 = chargeController.getChargeControllerData( modbusUnit=10 )
+        print( cc1 )
     except Exception as e:
         print(e)
 
     try:
-        chargeController.getChargeControllerData( modbusUnit=20 )
+        cc2 = chargeController.getChargeControllerData( modbusUnit=20 )
+        print( cc2 )
     except Exception as e:
         print(e)
 
     try:
-        chargeController.getRelayBoxData( modbusUnit=9 )
+        rb = chargeController.getRelayBoxData( modbusUnit=9 )
+        print( rb )
     except Exception as e:
         print(e)
+
+    try:
+        rs = chargeController.getRelayBoxState( modbusUnit=9 )
+        print( rs )
+    except Exception as e:
+        print(e)
+
 
     time.sleep(2)
 
