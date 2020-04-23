@@ -63,8 +63,9 @@ ACCESS_SECRET = '6ea5f8f4ce682619feb8007ec4a6b8ddc679453ceb64642b4acea757fcdd645
 
 
 
-def createDbTables( dbConnection ):
+def createDbTables( ):
     # get te cursor
+    dbConnection = sqlite3.connect( DATABASE )
     cur = dbConnection.cursor()
 
     print("Accessing db tables and creating if not exists ...")
@@ -77,10 +78,14 @@ def createDbTables( dbConnection ):
     else:
         print("DB TABLES CREATION: Error! cannot create the database connection.")
 
+    dbConnection.flush()
+    dbConnection.close()
 
 
-def saveDataToDb(dbConnection, *args):
+
+def saveDataToDb( *args ):
     # get te cursor
+    dbConnection = sqlite3.connect( DATABASE )
     cur = dbConnection.cursor()
 
     for count, thing in enumerate(args):
@@ -99,7 +104,7 @@ def saveDataToDb(dbConnection, *args):
 
     # commit data
     dbConnection.commit()
-
+    dbConnection.close()
 
 
 
@@ -156,9 +161,9 @@ def printLocalDbTables(dbName):
         cur1.execute("SELECT timestamp, synced FROM "+table_name['name']+ " where synced == 0")
         results = cur1.fetchall()
 
-        print(results)
+        print("Table " + str(table_name)+ " numebr of elements : " + str(len(results)) )
 
-
+    connection.close()
 
 def getDbTablesJson(dbName, boardId):
     # connect to the SQlite databases
@@ -560,12 +565,12 @@ def main():
 
 
     ## connect to the local db: create a new file if doesn't exists
-    dbConnection = sqlite3.connect( DATABASE )
+    # dbConnection = sqlite3.connect( DATABASE )
 
     ## create tables in sqlite DB if dont exists
     # PAY ATTENTION: if chenged the db structure, it wont recreate the db
     # but the fields will be different
-    createDbTables( dbConnection )
+    createDbTables( )
 
     arduino  = None
     # arduinos = None
@@ -675,11 +680,27 @@ def main():
                     print("Error updating Losant state.")
 
             ## save data to local sqlite db:
-            saveDataToDb( dbConnection,
+            try:
+                saveDataToDb( 
                     dataCC,
                     dataRB,
-                    dataRS,
-                    mcuData)
+                    dataRS
+                    )
+            except Exception as e:
+                print("ERROR: Adding CC-RB data to local DB: " + str( e ))
+
+        
+            try:
+                saveDataToDb( 
+                    mcuData
+                    )
+            except Exception as e:
+                print("ERROR: Adding MCU data to local DB: " + str( e ))
+
+            # Debug data table insertion
+            print( 'DEBUG: Table insertion:' )
+            printLocalDbTables( DATABASE )
+
 
             ## send data to telemetry
             #saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
