@@ -78,7 +78,7 @@ def createDbTables( ):
     else:
         print("DB TABLES CREATION: Error! cannot create the database connection.")
 
-    dbConnection.flush()
+    dbConnection.commit()
     dbConnection.close()
 
 
