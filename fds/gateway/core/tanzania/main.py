@@ -8,6 +8,7 @@ import os
 import eventlet
 import signal
 
+from datetime import datetime
 from argparse import ArgumentParser
 
 sys.dont_write_bytecode = True
@@ -47,8 +48,8 @@ DEFAULT_DATABASE_PATH_NEO = './'
 DEFAULT_REMOTE_SERVER_URL = 'http://ec2-54-214-112-214.us-west-2.compute.amazonaws.com'
 
 
-################ LOSANT ####################################
 
+################ LOSANT ####################################
 # codici temporanei per demos
 DEVICE_ID_SIENA = '5ddfdb7c0ac5cc0007fbffb9'
 DEVICE_ID_AREZZO = '5dd3b9ee9285680007ea7a76'
@@ -380,6 +381,26 @@ def onLosantCommand(device, command):
         print("boooo")
 
 
+def getParametersFromEnv():
+    
+    if "DELAY" in os.environ:
+        delay = os.environ['DELAY']
+    else:
+        delay = DEFAULT_DELAY_BETWEEN_READINGS
+
+    if "RB_UNIT" in os.environ:
+        pass
+
+    if "CC_UNIT" in os.environ:
+        pass
+
+    if "MODBUS_IP" in os.environ:
+        pass
+
+
+
+
+
 def main():
     print("INASSE OfGridBox v0.5 - tanzania")
 
@@ -501,9 +522,9 @@ def main():
     IS_REMOTE_SYNC_DISABLED = results.isRemoteSyncDisabled
     LOSANT_DEVICE_ID        = results.losantDeviceId
 
-    BUS_I2C = 1
-    BOARD_TYPE = "C23"
-    RESET_PIN = DEFAULT_RESET_GPIO_C23
+    BUS_I2C       = 1
+    BOARD_TYPE    = "C23"
+    RESET_PIN     = DEFAULT_RESET_GPIO_C23
     DATABASE_PATH = DEFAULT_DATABASE_PATH_C23
 
     if results.resetPin != None:
@@ -612,6 +633,9 @@ def main():
         #processCommand(COMMAND_INPUT_FILE)
 
         if not IS_PAUSED:
+            dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            print( dt_string )
+
             print("Sensors reading " + str( cycle ))
 
             try:
@@ -647,7 +671,6 @@ def main():
                     print("I2C read attempt " + str(attempt) + ": FAIL  " + str(e))
 
 
-
             ## if after all the cycles the mcu is stuck try reset
             if(mcuData == None):
                 print("MCU RESET: MCU i2c probably stuck!")
@@ -680,6 +703,7 @@ def main():
                     print("Error updating Losant state.")
 
             ## save data to local sqlite db:
+            print("Saving CC and RB data...")
             try:
                 saveDataToDb( 
                     dataCC,
@@ -689,7 +713,7 @@ def main():
             except Exception as e:
                 print("ERROR: Adding CC-RB data to local DB: " + str( e ))
 
-        
+            print("Saving MCU data...")
             try:
                 saveDataToDb( 
                     mcuData
@@ -697,10 +721,9 @@ def main():
             except Exception as e:
                 print("ERROR: Adding MCU data to local DB: " + str( e ))
 
-            # Debug data table insertion
+            # Debug data table insertion print size
             print( 'DEBUG: Table insertion:' )
             printLocalDbTables( DATABASE )
-
 
             ## send data to telemetry
             #saveDataToTelemetryFile(TELEMETRY_PATH, dataCC, dataRB, dataRS, mcuData)
