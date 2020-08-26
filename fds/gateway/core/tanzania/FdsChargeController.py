@@ -130,6 +130,71 @@ class FdsChargeController():
 
 
 
+    def getChargeController2Data(self, modbusUnit=CHARGE_CONTROLLER_UNIT):
+        data = {'type':'chargecontroller2'}
+
+        if self.client != None:
+            try:
+                # read registers. Start at 0 for convenience
+                rr = self.client.read_holding_registers(0,80, unit=modbusUnit)
+
+                # for all indexes, subtract 1 from what's in the manual
+                V_PU_hi = rr.registers[0]
+                V_PU_lo = rr.registers[1]
+                I_PU_hi = rr.registers[2]
+                I_PU_lo = rr.registers[3]
+
+                V_PU = float(V_PU_hi) + float(V_PU_lo)
+                I_PU = float(I_PU_hi) + float(I_PU_lo)
+
+                v_scale = V_PU * 2**(-15)
+                i_scale = I_PU * 2**(-15)
+                p_scale = V_PU * I_PU * 2**(-17)
+
+                # battery sense voltage, filtered
+                data[ fds.LABEL_CC_BATTS_V ]       = rr.registers[24] * v_scale
+                data[ fds.LABEL_CC_BATT_SENSED_V ] = rr.registers[26] * v_scale
+                data[ fds.LABEL_CC_BATTS_I ]       = rr.registers[28] * i_scale
+                data[ fds.LABEL_CC_ARRAY_V ]       = rr.registers[27] * v_scale
+                data[ fds.LABEL_CC_ARRAY_I ]       = rr.registers[29] * i_scale
+                data[ fds.LABEL_CC_STATENUM ]     = rr.registers[50]
+                data[ fds.LABEL_CC_HS_TEMP]       = rr.registers[35]
+                data[ fds.LABEL_CC_RTS_TEMP]      = rr.registers[36]
+                data[ fds.LABEL_CC_OUT_POWER]     = rr.registers[58] * p_scale
+                data[ fds.LABEL_CC_IN_POWER]      = rr.registers[59] * p_scale
+                data[ fds.LABEL_CC_MINVB_DAILY ]  = rr.registers[64] * v_scale
+                data[ fds.LABEL_CC_MAXVB_DAILY ]  = rr.registers[65] * v_scale
+                data[ fds.LABEL_CC_MINTB_DAILY ]  = rr.registers[71]
+                data[ fds.LABEL_CC_MAXTB_DAILY ]  = rr.registers[72]
+                data[ fds.LABEL_CC_DIPSWITCHES ]  = bin(rr.registers[48])[::-1][:-2].zfill(8)
+                #led_state            = rr.registers
+            except ModbusIOException as e:
+                logging.error('Charge Controller: modbusIOException')
+                raise e
+            except Exception as e:
+                logging.error('Charge Controller: unpredicted exception')
+                raise e
+        else:
+            data[ fds.LABEL_CC_BATTS_V ]       = random.uniform(0, 60)
+            data[ fds.LABEL_CC_BATT_SENSED_V ] = random.uniform(0, 60)
+            data[ fds.LABEL_CC_BATTS_I ]       = random.uniform(0, 60)
+            data[ fds.LABEL_CC_ARRAY_V ]       = random.uniform(0, 60)
+            data[ fds.LABEL_CC_ARRAY_I ]       = random.uniform(0, 60)
+            data[ fds.LABEL_CC_STATENUM ]     = random.uniform(0, 60)
+            data[ fds.LABEL_CC_HS_TEMP]       = random.uniform(0, 60)
+            data[ fds.LABEL_CC_RTS_TEMP]      = random.uniform(0, 60)
+            data[ fds.LABEL_CC_OUT_POWER]     = random.uniform(0, 60)
+            data[ fds.LABEL_CC_IN_POWER]      = random.uniform(0, 60)
+            data[ fds.LABEL_CC_MINVB_DAILY ]  = random.uniform(0, 60)
+            data[ fds.LABEL_CC_MAXVB_DAILY ]  = random.uniform(0, 60)
+            data[ fds.LABEL_CC_MINTB_DAILY ]  = random.uniform(0, 60)
+            data[ fds.LABEL_CC_MAXTB_DAILY ]  = random.uniform(0, 60)
+            data[ fds.LABEL_CC_DIPSWITCHES ]  =bin(0x02)[::-1][:-2].zfill(8)
+
+        return data
+
+
+
     def getRelayBoxData(self, modbusUnit=RELAYBOX_UNIT):
         data = {'type':'relaybox'}
 

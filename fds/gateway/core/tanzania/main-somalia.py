@@ -74,6 +74,7 @@ def createDbTables( dbConnection ):
 
     if cur is not None:
         cur.execute(FdsDB.sql_create_charge_controller_table)
+        cur.execute(FdsDB.sql_create_charge_controller_2_table)
         cur.execute(FdsDB.sql_create_relaybox_table)
         cur.execute(FdsDB.sql_create_relay_state_table)
         cur.execute(FdsDB.sql_create_mcu_table)
@@ -99,6 +100,8 @@ def saveDataToDb(dbConnection, *args):
             cur.execute(FdsDB.insert_relay_box, data)
         elif data['type'] ==  'chargecontroller':
             cur.execute(FdsDB.insert_charge_controller, data)
+        elif data['type'] ==  'chargecontroller2':
+            cur.execute(FdsDB.insert_charge_controller_2, data)
 
     # commit data
     dbConnection.commit()
@@ -643,9 +646,9 @@ def main():
                 dataCC = None
                 print("READING MODBUS CC: " + str(e))
 
-            
+
             try:
-                dataCC_2 = chargeController.getChargeControllerData(modbusUnit=int(CHARGE_CONTROLLER_UNITS[1]))
+                dataCC_2 = chargeController.getChargeControllerData2(modbusUnit=int(CHARGE_CONTROLLER_UNITS[1]))
             except Exception as e:
                 dataCC_2 = None
                 print("READING MODBUS CC_2: " + str(e))
@@ -715,6 +718,7 @@ def main():
             ## save data to local sqlite db:
             saveDataToDb( dbConnection,
                     dataCC,
+                    dataCC_2,
                     dataRB,
                     dataRS,
                     mcuData)

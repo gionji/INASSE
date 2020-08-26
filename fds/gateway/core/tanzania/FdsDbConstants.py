@@ -29,6 +29,27 @@ sql_create_charge_controller_table = """ CREATE TABLE IF NOT EXISTS charge_contr
                                         synced       integer(1) default 0
                                     ); """
 
+sql_create_charge_controller_2_table = """ CREATE TABLE IF NOT EXISTS charge_controller_2 (
+                                        id           integer PRIMARY KEY,
+                                        timestamp    date    NOT NULL,
+                                        """ + fds.LABEL_CC_BATTS_V + """     float   NOT NULL,
+                                        """ + fds.LABEL_CC_BATT_SENSED_V + """ float   NOT NULL,
+                                        """ + fds.LABEL_CC_BATTS_I + """        float   NOT NULL,
+                                        """ + fds.LABEL_CC_ARRAY_V + """        float   NOT NULL,
+                                        """ + fds.LABEL_CC_ARRAY_I + """        float   NOT NULL,
+                                        """ + fds.LABEL_CC_STATENUM + """      integer NOT NULL,
+                                        """ + fds.LABEL_CC_HS_TEMP + """        float   NOT NULL,
+                                        """ + fds.LABEL_CC_RTS_TEMP + """       float   NOT NULL,
+                                        """ + fds.LABEL_CC_OUT_POWER + """      float   NOT NULL,
+                                        """ + fds.LABEL_CC_IN_POWER + """       float   NOT NULL,
+                                        """ + fds.LABEL_CC_MINVB_DAILY + """   float   NOT NULL,
+                                        """ + fds.LABEL_CC_MAXVB_DAILY + """   float   NOT NULL,
+                                        """ + fds.LABEL_CC_MINTB_DAILY + """   float   NOT NULL,
+                                        """ + fds.LABEL_CC_MAXTB_DAILY + """   float   NOT NULL,
+                                        """ + fds.LABEL_CC_DIPSWITCHES + """   text    NOT NULL,
+                                        synced       integer(1) default 0
+                                    ); """
+
 
 
 sql_create_relaybox_table = """ CREATE TABLE IF NOT EXISTS relay_box (
@@ -186,6 +207,48 @@ insert_relay_box = """
               :""" + fds.LABEL_RB_GLOBAL_FAULTS + """ ,
               :""" + fds.LABEL_RB_GLOBAL_ALARMS + """ ,
               :""" + fds.LABEL_RB_CH_ALARMS_2 + """ ,
+              datetime('now')
+              );
+            """
+
+
+insert_charge_controller_2 = """
+            INSERT INTO charge_controller_2 (
+               id,
+               """ + fds.LABEL_CC_OUT_POWER + """ ,
+               """ + fds.LABEL_CC_MINTB_DAILY + """ ,
+               """ + fds.LABEL_CC_DIPSWITCHES + """ ,
+               """ + fds.LABEL_CC_ARRAY_V + """ ,
+               """ + fds.LABEL_CC_MINVB_DAILY + """ ,
+               """ + fds.LABEL_CC_ARRAY_I + """ ,
+               """ + fds.LABEL_CC_BATT_SENSED_V + """,
+               """ + fds.LABEL_CC_STATENUM + """ ,
+               """ + fds.LABEL_CC_MAXTB_DAILY + """ ,
+               """ + fds.LABEL_CC_BATTS_I + """ ,
+               """ + fds.LABEL_CC_BATTS_V + """,
+               """ + fds.LABEL_CC_RTS_TEMP + """ ,
+               """ + fds.LABEL_CC_IN_POWER + """ ,
+               """ + fds.LABEL_CC_MAXVB_DAILY + """ ,
+               """ + fds.LABEL_CC_HS_TEMP + """ ,
+               timestamp
+               )
+            VALUES (
+              NULL,
+              :""" + fds.LABEL_CC_OUT_POWER + """ ,
+              :""" + fds.LABEL_CC_MINTB_DAILY + """ ,
+              :""" + fds.LABEL_CC_DIPSWITCHES + """ ,
+              :""" + fds.LABEL_CC_ARRAY_V + """ ,
+              :""" + fds.LABEL_CC_MINVB_DAILY + """ ,
+              :""" + fds.LABEL_CC_ARRAY_I + """ ,
+              :""" + fds.LABEL_CC_BATT_SENSED_V + """,
+              :""" + fds.LABEL_CC_STATENUM + """ ,
+              :""" + fds.LABEL_CC_MAXTB_DAILY + """ ,
+              :""" + fds.LABEL_CC_BATTS_I + """ ,
+              :""" + fds.LABEL_CC_BATTS_V + """,
+              :""" + fds.LABEL_CC_RTS_TEMP + """ ,
+              :""" + fds.LABEL_CC_IN_POWER + """ ,
+              :""" + fds.LABEL_CC_MAXVB_DAILY + """ ,
+              :""" + fds.LABEL_CC_HS_TEMP + """ ,
               datetime('now')
               );
             """
